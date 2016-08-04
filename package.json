@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/diasdavid/js-libp2p-tcp",
   "devDependencies": {
-    "aegir": "^4.0.0",
+    "aegir": "^6.0.0",
     "chai": "^3.5.0",
     "interface-transport": "^0.2.0",
     "pre-commit": "^1.1.2",
