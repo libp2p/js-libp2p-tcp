@@ -34,7 +34,7 @@
   "devDependencies": {
     "aegir": "^4.0.0",
     "chai": "^3.5.0",
-    "interface-transport": "^0.2.0",
+    "interface-transport": "^0.3.1",
     "pre-commit": "^1.1.2",
     "tape": "^4.5.1"
   },
