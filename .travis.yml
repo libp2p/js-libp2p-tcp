@@ -26,7 +26,6 @@ after_success:
   - npm run coverage-publish
 
 addons:
-  firefox: 'latest'
   apt:
     sources:
       - ubuntu-toolchain-r-test
