@@ -46,7 +46,7 @@
     "lodash.contains": "^2.4.3",
     "mafmt": "^2.1.2",
     "multiaddr": "^2.0.3",
-    "stream-to-pull-stream": "^1.7.0"
+    "stream-to-pull-stream": "^1.7.1"
   },
   "contributors": [
     "David Dias <daviddias.p@gmail.com>",
