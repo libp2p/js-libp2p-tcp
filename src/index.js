@@ -15,7 +15,18 @@ const createListener = require('./listener')
 
 function noop () {}
 
+/**
+ *
+ */
 class TCP {
+  /**
+   * Dial to another peer.
+   *
+   * @param {Multiaddr} ma - The address of the peer we want to dial to.
+   * @param {Object} [options={}]
+   * @param {function(Error?, Array<Multiaddr>?)} [callback]
+   * @returns {Connection}
+   */
   dial (ma, options, callback) {
     if (isFunction(options)) {
       callback = options
@@ -52,6 +63,13 @@ class TCP {
     return conn
   }
 
+  /**
+   * Listen for incoming `TCP` connetions.
+   *
+   * @param {Object} [options={}]
+   * @param {function(Connection)} [handler] - Called with newly incomin connections.
+   * @returns {Listener}
+   */
   createListener (options, handler) {
     if (isFunction(options)) {
       handler = options
@@ -63,6 +81,13 @@ class TCP {
     return createListener(handler)
   }
 
+  /**
+   * Filter a list of multiaddrs for those which contain
+   * valid `TCP` addresses.
+   *
+   * @param {Multiaddr|Array<Multiaddr>} multiaddrs
+   * @returns {Array<Multiaddr>}
+   */
   filter (multiaddrs) {
     if (!Array.isArray(multiaddrs)) {
       multiaddrs = [multiaddrs]
