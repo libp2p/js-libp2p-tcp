@@ -15,7 +15,49 @@ const getMultiaddr = require('./get-multiaddr')
 const IPFS_CODE = 421
 const CLOSE_TIMEOUT = 2000
 
+/**
+ * Listening for incoming connections.
+ *
+ * @event listening
+ * @instance
+ * @memberof Listener
+ */
+
+/**
+ * The server closes.
+ *
+ * @event close
+ * @instance
+ * @memberof Listener
+ */
+
+/**
+ * New connection established.
+ *
+ * @event connection
+ * @instance
+ * @type {Connection}
+ * @memberof Listener
+ */
+
+/**
+ * The underlying server encountered an error.
+ *
+ * @event error
+ * @instance
+ * @type {Error}
+ * @memberof Listener
+ */
+
 module.exports = (handler) => {
+  /**
+   * @alias Listener
+   * @type {Eventemitter}
+   * @fires Listener#listening
+   * @fires Listener#close
+   * @fires Listener#connection
+   * @fires Listener#error
+   */
   const listener = new EventEmitter()
 
   const server = net.createServer((socket) => {

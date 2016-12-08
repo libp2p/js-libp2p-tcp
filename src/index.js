@@ -11,21 +11,32 @@ const log = debug('libp2p:tcp:dial')
 
 const createListener = require('./listener')
 
-module.exports = class TCP {
-  dial (ma, options, cb) {
+/**
+ *
+ */
+class TCP {
+  /**
+   * Dial to another peer.
+   *
+   * @param {Multiaddr} ma - The address of the peer we want to dial to.
+   * @param {Object} [options={}]
+   * @param {function(Error?, Array<Multiaddr>?)} [callback]
+   * @returns {Connection}
+   */
+  dial (ma, options, callback) {
     if (isFunction(options)) {
-      cb = options
+      callback = options
       options = {}
     }
 
-    if (!cb) {
-      cb = () => {}
+    if (!callback) {
+      callback = () => {}
     }
 
     const cOpts = ma.toOptions()
     log('Connecting to %s %s', cOpts.port, cOpts.host)
 
-    const rawSocket = net.connect(cOpts, cb)
+    const rawSocket = net.connect(cOpts, callback)
 
     rawSocket.once('timeout', () => {
       log('timeout')
@@ -43,6 +54,13 @@ module.exports = class TCP {
     return conn
   }
 
+  /**
+   * Listen for incoming `TCP` connetions.
+   *
+   * @param {Object} [options={}]
+   * @param {function(Connection)} [handler] - Called with newly incomin connections.
+   * @returns {Listener}
+   */
   createListener (options, handler) {
     if (isFunction(options)) {
       handler = options
@@ -54,6 +72,13 @@ module.exports = class TCP {
     return createListener(handler)
   }
 
+  /**
+   * Filter a list of multiaddrs for those which contain
+   * valid `TCP` addresses.
+   *
+   * @param {Multiaddr|Array<Multiaddr>} multiaddrs
+   * @returns {Array<Multiaddr>}
+   */
   filter (multiaddrs) {
     if (!Array.isArray(multiaddrs)) {
       multiaddrs = [multiaddrs]
@@ -66,3 +91,5 @@ module.exports = class TCP {
     })
   }
 }
+
+module.exports = TCP
