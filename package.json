@@ -33,7 +33,7 @@
     "node": ">=4.0.0"
   },
   "devDependencies": {
-    "interface-transport": "~0.3.3",
+    "interface-transport": "~0.3.4",
     "aegir": "^10.0.0",
     "chai": "^3.5.0",
     "lodash.isfunction": "^3.0.8",
