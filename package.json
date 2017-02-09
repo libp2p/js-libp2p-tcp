@@ -41,7 +41,7 @@
     "pull-stream": "^3.5.0"
   },
   "dependencies": {
-    "interface-connection": "~0.3.0",
+    "interface-connection": "~0.3.1",
     "mafmt": "^2.1.6",
     "multiaddr": "^2.2.1",
     "ip-address": "^5.8.6",
