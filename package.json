@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "interface-transport": "~0.3.3",
-    "aegir": "^10.0.0",
+    "aegir": "^11.0.0",
     "chai": "^3.5.0",
     "lodash.isfunction": "^3.0.8",
     "pre-commit": "^1.2.2",
