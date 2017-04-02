@@ -13,6 +13,14 @@ const log = debug('libp2p:tcp:dial')
 const createListener = require('./listener')
 
 module.exports = class TCP {
+  get priority () {
+    return 1 // TODO: move to a constants file that all transports can share
+  }
+
+  set priority (val) {
+    throw new Error('Priority is read only!')
+  }
+
   dial (ma, options, cb) {
     if (isFunction(options)) {
       cb = options
