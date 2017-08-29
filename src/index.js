@@ -67,7 +67,7 @@ class TCP {
       multiaddrs = [multiaddrs]
     }
     return multiaddrs.filter((ma) => {
-      return mafmt.TCP.matches(ma) || mafmt.TCP_IPFS.matches(ma)
+      return mafmt.TCP.matches(ma)
     })
   }
 }
