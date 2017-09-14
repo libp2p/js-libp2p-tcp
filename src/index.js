@@ -3,6 +3,7 @@
 const net = require('net')
 const toPull = require('stream-to-pull-stream')
 const mafmt = require('mafmt')
+const includes = require('lodash.includes')
 const isFunction = require('lodash.isfunction')
 const Connection = require('interface-connection').Connection
 const once = require('once')
@@ -66,7 +67,16 @@ class TCP {
     if (!Array.isArray(multiaddrs)) {
       multiaddrs = [multiaddrs]
     }
+
     return multiaddrs.filter((ma) => {
+      if (includes(ma.protoNames(), 'p2p-circuit')) {
+        return false
+      }
+
+      if (includes(ma.protoNames(), 'ipfs')) {
+        ma = ma.decapsulate('ipfs')
+      }
+
       return mafmt.TCP.matches(ma)
     })
   }
