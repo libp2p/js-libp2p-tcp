@@ -10,6 +10,7 @@ const TCP = require('../src')
 const net = require('net')
 const multiaddr = require('multiaddr')
 const Connection = require('interface-connection').Connection
+const envCi = require('env-ci')
 
 describe('instantiate the transport', () => {
   it('create', () => {
@@ -54,6 +55,7 @@ describe('listen', () => {
   })
 
   it('listen on IPv6 addr', (done) => {
+    if (envCi.isCI) { return done() }
     const mh = multiaddr('/ip6/::/tcp/9090')
     const listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
@@ -179,6 +181,8 @@ describe('dial', () => {
   })
 
   it('dial on IPv6', (done) => {
+    if (envCi.isCI) { return done() }
+
     const ma = multiaddr('/ip6/::/tcp/9066')
     const listener = tcp.createListener((conn) => {
       pull(conn, conn)
