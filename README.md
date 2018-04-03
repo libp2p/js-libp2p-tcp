@@ -51,11 +51,11 @@ const listener = tcp.createListener((socket) => {
   )
 })
 
-listener.listen(mh1, () => {
+listener.listen(mh, () => {
   console.log('listening')
 
   pull(
-    tcp.dial(mh1),
+    tcp.dial(mh),
     pull.collect((err, values) => {
       if (!err) {
         console.log(`Value: ${values.toString()}`)
