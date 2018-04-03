@@ -75,7 +75,7 @@ Outputs:
 ```sh
 listening
 new connection opened
-hello
+Value: hello
 ```
 
 ## API
