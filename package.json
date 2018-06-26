@@ -39,7 +39,6 @@
     "dirty-chai": "^2.0.1",
     "interface-transport": "~0.3.6",
     "lodash.isfunction": "^3.0.9",
-    "pre-commit": "^1.2.2",
     "pull-stream": "^3.6.7"
   },
   "dependencies": {
