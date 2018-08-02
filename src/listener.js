@@ -4,29 +4,23 @@ const multiaddr = require('multiaddr')
 const Connection = require('interface-connection').Connection
 const os = require('os')
 const includes = require('lodash.includes')
-const net = require('net')
-const toPull = require('stream-to-pull-stream')
+const {createServer} = require('pull-net')
 const EventEmitter = require('events').EventEmitter
 const debug = require('debug')
 const log = debug('libp2p:tcp:listen')
 
 const getMultiaddr = require('./get-multiaddr')
-
 const IPFS_CODE = 421
-const CLOSE_TIMEOUT = 2000
 
 function noop () {}
 
 module.exports = (handler) => {
   const listener = new EventEmitter()
 
-  const server = net.createServer((socket) => {
-    // Avoid uncaught errors cause by unstable connections
-    socket.on('error', noop)
-
-    const addr = getMultiaddr(socket)
+  const server = createServer((stream) => {
+    const addr = getMultiaddr(stream)
     if (!addr) {
-      if (socket.remoteAddress === undefined) {
+      if (stream.remoteAddress === undefined || stream.remoteAddress.address === 'undefined') {
         log('connection closed before p2p connection made')
       } else {
         log('error interpreting incoming p2p connection')
@@ -36,25 +30,16 @@ module.exports = (handler) => {
 
     log('new connection', addr.toString())
 
-    const s = toPull.duplex(socket)
-
-    s.getObservedAddrs = (cb) => {
+    stream.getObservedAddrs = (cb) => {
       cb(null, [addr])
     }
 
-    trackSocket(server, socket)
-
-    const conn = new Connection(s)
+    const conn = new Connection(stream)
     handler(conn)
     listener.emit('connection', conn)
   })
 
-  server.on('listening', () => listener.emit('listening'))
-  server.on('error', (err) => listener.emit('error', err))
-  server.on('close', () => listener.emit('close'))
-
-  // Keep track of open connections to destroy in case of timeout
-  server.__connections = {}
+  listener.emit('listening')
 
   listener.close = (options, callback) => {
     if (typeof options === 'function') {
@@ -64,18 +49,9 @@ module.exports = (handler) => {
     callback = callback || noop
     options = options || {}
 
-    const timeout = setTimeout(() => {
-      log('unable to close graciously, destroying conns')
-      Object.keys(server.__connections).forEach((key) => {
-        log('destroying %s', key)
-        server.__connections[key].destroy()
-      })
-    }, options.timeout || CLOSE_TIMEOUT)
-
-    server.close(callback)
-
-    server.once('close', () => {
-      clearTimeout(timeout)
+    server.close((err, ...a) => {
+      listener.emit('close')
+      callback(err, ...a)
     })
   }
 
@@ -144,13 +120,4 @@ function getIpfsId (ma) {
   return ma.stringTuples().filter((tuple) => {
     return tuple[0] === IPFS_CODE
   })[0][1]
-}
-
-function trackSocket (server, socket) {
-  const key = `${socket.remoteAddress}:${socket.remotePort}`
-  server.__connections[key] = socket
-
-  socket.on('close', () => {
-    delete server.__connections[key]
-  })
 }

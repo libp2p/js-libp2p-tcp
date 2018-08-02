@@ -1,7 +1,6 @@
 'use strict'
 
-const net = require('net')
-const toPull = require('stream-to-pull-stream')
+const {connect} = require('pull-net')
 const mafmt = require('mafmt')
 const withIs = require('class-is')
 const includes = require('lodash.includes')
@@ -27,23 +26,7 @@ class TCP {
     const cOpts = ma.toOptions()
     log('Connecting to %s %s', cOpts.port, cOpts.host)
 
-    const rawSocket = net.connect(cOpts)
-
-    rawSocket.once('timeout', () => {
-      log('timeout')
-      rawSocket.emit('error', new Error('Timeout'))
-    })
-
-    rawSocket.once('error', callback)
-
-    rawSocket.once('connect', () => {
-      rawSocket.removeListener('error', callback)
-      callback()
-    })
-
-    const socket = toPull.duplex(rawSocket)
-
-    const conn = new Connection(socket)
+    const conn = new Connection(connect(cOpts.port, cOpts.host, callback))
 
     conn.getObservedAddrs = (callback) => {
       return callback(null, [ma])

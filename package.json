@@ -51,6 +51,7 @@
     "mafmt": "^6.0.0",
     "multiaddr": "^4.0.0",
     "once": "^1.4.0",
+    "pull-net": "github:mkg20001/pull-net",
     "stream-to-pull-stream": "^1.7.2"
   },
   "contributors": [
