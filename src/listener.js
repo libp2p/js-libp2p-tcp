@@ -41,8 +41,6 @@ module.exports = (handler) => {
       cb(null, [addr])
     }
 
-    trackSocket(server, socket)
-
     const conn = new Connection(s)
     handler(conn)
     listener.emit('connection', conn)
@@ -51,9 +49,17 @@ module.exports = (handler) => {
   server.on('listening', () => listener.emit('listening'))
   server.on('error', (err) => listener.emit('error', err))
   server.on('close', () => listener.emit('close'))
+  server.on('connection', (conn) => {
+    server.__connections.push(conn)
+    conn.once('close', () => {
+      server.__connections = server.__connections.filter((c) => {
+        return conn !== c
+      })
+    })
+  })
 
   // Keep track of open connections to destroy in case of timeout
-  server.__connections = {}
+  server.__connections = []
 
   listener.close = (options, callback) => {
     if (typeof options === 'function') {
@@ -65,9 +71,9 @@ module.exports = (handler) => {
 
     const timeout = setTimeout(() => {
       log('unable to close graciously, destroying conns')
-      Object.keys(server.__connections).forEach((key) => {
-        log('destroying %s', key)
-        server.__connections[key].destroy()
+      server.__connections.forEach((conn) => {
+        log('destroying %s', `${conn.remoteAddress}:${conn.remotePort}`)
+        conn.destroy()
       })
     }, options.timeout || CLOSE_TIMEOUT)
 
@@ -143,13 +149,4 @@ function getIpfsId (ma) {
   return ma.stringTuples().filter((tuple) => {
     return tuple[0] === IPFS_CODE
   })[0][1]
-}
-
-function trackSocket (server, socket) {
-  const key = `${socket.remoteAddress}:${socket.remotePort}`
-  server.__connections[key] = socket
-
-  socket.on('close', () => {
-    delete server.__connections[key]
-  })
 }
