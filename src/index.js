@@ -4,8 +4,6 @@ const net = require('net')
 const toPull = require('stream-to-pull-stream')
 const mafmt = require('mafmt')
 const withIs = require('class-is')
-const includes = require('lodash.includes')
-const isFunction = require('lodash.isfunction')
 const Connection = require('interface-connection').Connection
 const once = require('once')
 const debug = require('debug')
@@ -17,7 +15,7 @@ function noop () {}
 
 class TCP {
   dial (ma, options, callback) {
-    if (isFunction(options)) {
+    if (typeof options === 'function') {
       callback = options
       options = {}
     }
@@ -53,7 +51,7 @@ class TCP {
   }
 
   createListener (options, handler) {
-    if (isFunction(options)) {
+    if (typeof options === 'function') {
       handler = options
       options = {}
     }
@@ -69,11 +67,11 @@ class TCP {
     }
 
     return multiaddrs.filter((ma) => {
-      if (includes(ma.protoNames(), 'p2p-circuit')) {
+      if (ma.protoNames().includes('p2p-circuit')) {
         return false
       }
 
-      if (includes(ma.protoNames(), 'ipfs')) {
+      if (ma.protoNames().includes('ipfs')) {
         ma = ma.decapsulate('ipfs')
       }
 

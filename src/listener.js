@@ -3,7 +3,6 @@
 const multiaddr = require('multiaddr')
 const Connection = require('interface-connection').Connection
 const os = require('os')
-const includes = require('lodash.includes')
 const net = require('net')
 const toPull = require('stream-to-pull-stream')
 const EventEmitter = require('events').EventEmitter
@@ -12,7 +11,6 @@ const log = debug('libp2p:tcp:listen')
 
 const getMultiaddr = require('./get-multiaddr')
 
-const IPFS_CODE = 421
 const CLOSE_TIMEOUT = 2000
 
 function noop () {}
@@ -79,15 +77,10 @@ module.exports = (handler) => {
     })
   }
 
-  let ipfsId
   let listeningAddr
 
   listener.listen = (ma, callback) => {
     listeningAddr = ma
-    if (includes(ma.protoNames(), 'ipfs')) {
-      ipfsId = getIpfsId(ma)
-      listeningAddr = ma.decapsulate('ipfs')
-    }
 
     const lOpts = listeningAddr.toOptions()
     log('Listening on %s %s', lOpts.port, lOpts.host)
@@ -105,45 +98,49 @@ module.exports = (handler) => {
     // Because TCP will only return the IPv6 version
     // we need to capture from the passed multiaddr
     if (listeningAddr.toString().indexOf('ip4') !== -1) {
-      let m = listeningAddr.decapsulate('tcp')
-      m = m.encapsulate('/tcp/' + address.port)
-      if (ipfsId) {
-        m = m.encapsulate('/ipfs/' + ipfsId)
-      }
-
-      if (m.toString().indexOf('0.0.0.0') !== -1) {
+      if (listeningAddr.toString().indexOf('0.0.0.0') !== -1) {
         const netInterfaces = os.networkInterfaces()
         Object.keys(netInterfaces).forEach((niKey) => {
           netInterfaces[niKey].forEach((ni) => {
-            if (ni.family === 'IPv4') {
-              multiaddrs.push(multiaddr(m.toString().replace('0.0.0.0', ni.address)))
+            if (ni.family === 'IPv4' && !ni.internal) {
+              multiaddrs.push(
+                multiaddr(listeningAddr.toString().replace('0.0.0.0', ni.address))
+              )
             }
           })
         })
       } else {
-        multiaddrs.push(m)
+        multiaddrs.push(listeningAddr)
       }
     }
 
     if (address.family === 'IPv6') {
-      let ma = multiaddr('/ip6/' + address.address + '/tcp/' + address.port)
-      if (ipfsId) {
-        ma = ma.encapsulate('/ipfs/' + ipfsId)
+      // Listen on all available addresses when using wildcard
+      if (listeningAddr.toString().indexOf('/::/') !== -1) {
+        const netInterfaces = os.networkInterfaces()
+        Object.keys(netInterfaces).forEach((niKey) => {
+          netInterfaces[niKey].forEach((ni) => {
+            if (ni.family === address.family) {
+              const maOpts = listeningAddr.toOptions()
+              if (maOpts.host === '::') {
+                maOpts.family = address.family
+                maOpts.address = ni.address
+                multiaddrs.push(
+                  multiaddr.fromNodeAddress(maOpts, maOpts.transport)
+                )
+              }
+            }
+          })
+        })
+      } else {
+        multiaddrs.push(listeningAddr)
       }
-
-      multiaddrs.push(ma)
     }
 
     callback(null, multiaddrs)
   }
 
   return listener
-}
-
-function getIpfsId (ma) {
-  return ma.stringTuples().filter((tuple) => {
-    return tuple[0] === IPFS_CODE
-  })[0][1]
 }
 
 function trackSocket (server, socket) {

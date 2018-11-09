@@ -108,7 +108,24 @@ describe('listen', () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length > 0).to.equal(true)
-        expect(multiaddrs[0].toString().indexOf('0.0.0.0')).to.equal(-1)
+        multiaddrs.forEach((m) => {
+          expect(m.toOptions().host).to.not.eql('0.0.0.0')
+        })
+        listener.close(done)
+      })
+    })
+  })
+
+  it('getAddrs from listening on ip6 \'::\'', (done) => {
+    const mh = multiaddr('/ip6/::/tcp/9090')
+    const listener = tcp.createListener((conn) => {})
+    listener.listen(mh, () => {
+      listener.getAddrs((err, multiaddrs) => {
+        expect(err).to.not.exist()
+        expect(multiaddrs.length > 0).to.equal(true)
+        multiaddrs.forEach((m) => {
+          expect(m.toOptions().host).to.not.eql('::')
+        })
         listener.close(done)
       })
     })
