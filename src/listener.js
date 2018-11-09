@@ -122,7 +122,7 @@ module.exports = (handler) => {
           netInterfaces[niKey].forEach((ni) => {
             if (ni.family === address.family) {
               const maOpts = listeningAddr.toOptions()
-              if (maOpts.host === '::') {
+              if (maOpts.host === '::' && !ni.internal) {
                 maOpts.family = address.family
                 maOpts.address = ni.address
                 multiaddrs.push(
