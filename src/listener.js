@@ -102,7 +102,7 @@ module.exports = (handler) => {
         const netInterfaces = os.networkInterfaces()
         Object.keys(netInterfaces).forEach((niKey) => {
           netInterfaces[niKey].forEach((ni) => {
-            if (ni.family === 'IPv4' && !ni.internal) {
+            if (ni.family === 'IPv4') {
               multiaddrs.push(
                 multiaddr(listeningAddr.toString().replace('0.0.0.0', ni.address))
               )
@@ -122,7 +122,7 @@ module.exports = (handler) => {
           netInterfaces[niKey].forEach((ni) => {
             if (ni.family === address.family) {
               const maOpts = listeningAddr.toOptions()
-              if (maOpts.host === '::' && !ni.internal) {
+              if (maOpts.host === '::') {
                 maOpts.family = address.family
                 maOpts.address = ni.address
                 multiaddrs.push(
