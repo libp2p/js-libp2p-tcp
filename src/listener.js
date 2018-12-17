@@ -12,7 +12,7 @@ const log = debug('libp2p:tcp:listen')
 
 const getMultiaddr = require('./get-multiaddr')
 
-const IPFS_CODE = 421
+const P2P_CODE = 421
 const CLOSE_TIMEOUT = 2000
 
 function noop () {}
@@ -79,14 +79,14 @@ module.exports = (handler) => {
     })
   }
 
-  let ipfsId
+  let p2pId
   let listeningAddr
 
   listener.listen = (ma, callback) => {
     listeningAddr = ma
-    if (includes(ma.protoNames(), 'ipfs')) {
-      ipfsId = getIpfsId(ma)
-      listeningAddr = ma.decapsulate('ipfs')
+    if (includes(ma.protoNames(), 'p2p')) {
+      p2pId = getp2pId(ma)
+      listeningAddr = ma.decapsulate('p2p')
     }
 
     const lOpts = listeningAddr.toOptions()
@@ -107,8 +107,8 @@ module.exports = (handler) => {
     if (listeningAddr.toString().indexOf('ip4') !== -1) {
       let m = listeningAddr.decapsulate('tcp')
       m = m.encapsulate('/tcp/' + address.port)
-      if (ipfsId) {
-        m = m.encapsulate('/ipfs/' + ipfsId)
+      if (p2pId) {
+        m = m.encapsulate('/p2p/' + p2pId)
       }
 
       if (m.toString().indexOf('0.0.0.0') !== -1) {
@@ -127,8 +127,8 @@ module.exports = (handler) => {
 
     if (address.family === 'IPv6') {
       let ma = multiaddr('/ip6/' + address.address + '/tcp/' + address.port)
-      if (ipfsId) {
-        ma = ma.encapsulate('/ipfs/' + ipfsId)
+      if (p2pId) {
+        ma = ma.encapsulate('/p2p/' + p2pId)
       }
 
       multiaddrs.push(ma)
@@ -140,9 +140,9 @@ module.exports = (handler) => {
   return listener
 }
 
-function getIpfsId (ma) {
+function getp2pId (ma) {
   return ma.stringTuples().filter((tuple) => {
-    return tuple[0] === IPFS_CODE
+    return tuple[0] === P2P_CODE
   })[0][1]
 }
 

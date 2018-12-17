@@ -73,8 +73,8 @@ class TCP {
         return false
       }
 
-      if (includes(ma.protoNames(), 'ipfs')) {
-        ma = ma.decapsulate('ipfs')
+      if (ma.protoNames().includes('p2p')) {
+        ma = ma.decapsulate('p2p')
       }
 
       return mafmt.TCP.matches(ma)
