@@ -4,6 +4,10 @@
   "description": "Node.js implementation of the TCP module that libp2p uses, which implements the interface-connection and interface-transport interfaces",
   "leadMaintainer": "Jacob Heun <jacobheun@gmail.com>",
   "main": "src/index.js",
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "lint": "aegir lint",
     "test": "aegir test -t node -f test/**/*.js",
@@ -45,8 +49,6 @@
     "debug": "^4.1.1",
     "interface-connection": "~0.3.3",
     "ip-address": "^5.8.9",
-    "lodash.includes": "^4.3.0",
-    "lodash.isfunction": "^3.0.9",
     "mafmt": "^6.0.6",
     "multiaddr": "^6.0.5",
     "once": "^1.4.0",
