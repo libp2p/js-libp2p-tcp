@@ -14,14 +14,19 @@ const isCI = process.env.CI
 
 describe('listen', () => {
   let tcp
+  let listener
 
   beforeEach(() => {
     tcp = new TCP()
   })
 
+  afterEach((done) => {
+    listener ? listener.close(done) : done()
+  })
+
   it('close listener with connections, through timeout', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
-    const listener = tcp.createListener((conn) => {
+    listener = tcp.createListener((conn) => {
       pull(conn, conn)
     })
 
@@ -33,78 +38,70 @@ describe('listen', () => {
       socket1.end()
       socket1.on('error', () => {})
       socket2.on('error', () => {})
-      socket1.on('connect', () => {
-        listener.close(done)
-      })
+      socket1.on('connect', done)
     })
   })
 
   it('listen on port 0', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/0')
-    const listener = tcp.createListener((conn) => {})
-    listener.listen(mh, () => {
-      listener.close(done)
-    })
+    listener = tcp.createListener((conn) => {})
+    listener.listen(mh, done)
   })
 
   it('listen on IPv6 addr', (done) => {
     if (isCI) { return done() }
     const mh = multiaddr('/ip6/::/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
-    listener.listen(mh, () => {
-      listener.close(done)
-    })
+    listener = tcp.createListener((conn) => {})
+    listener.listen(mh, done)
   })
 
   it('listen on any Interface', (done) => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
-    listener.listen(mh, () => {
-      listener.close(done)
-    })
+    listener = tcp.createListener((conn) => {})
+    listener.listen(mh, done)
   })
 
   it('getAddrs', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length).to.equal(1)
         expect(multiaddrs[0]).to.deep.equal(mh)
-        listener.close(done)
+        done()
       })
     })
   })
 
   it('getAddrs on port 0 listen', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/0')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length).to.equal(1)
-        listener.close(done)
+        done()
       })
     })
   })
 
   it('getAddrs from listening on 0.0.0.0', (done) => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length > 0).to.equal(true)
         expect(multiaddrs[0].toString().indexOf('0.0.0.0')).to.equal(-1)
-        listener.close(done)
+        done()
       })
     })
   })
 
   it('getAddrs from listening on 0.0.0.0 and port 0', (done) => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/0')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
@@ -112,14 +109,14 @@ describe('listen', () => {
         multiaddrs.forEach((m) => {
           expect(m.toOptions().host).to.not.eql('0.0.0.0')
         })
-        listener.close(done)
+        done()
       })
     })
   })
 
   it('getAddrs from listening on ip6 \'::\'', (done) => {
     const mh = multiaddr('/ip6/::/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
@@ -127,20 +124,20 @@ describe('listen', () => {
         multiaddrs.forEach((m) => {
           expect(m.toOptions().host).to.not.eql('::')
         })
-        listener.close(done)
+        done()
       })
     })
   })
 
   it('getAddrs preserves IPFS Id', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length).to.equal(1)
         expect(multiaddrs[0]).to.deep.equal(mh)
-        listener.close(done)
+        done()
       })
     })
   })
