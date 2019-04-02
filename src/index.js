@@ -1,55 +1,61 @@
 'use strict'
 
 const net = require('net')
-const toPull = require('stream-to-pull-stream')
 const mafmt = require('mafmt')
 const withIs = require('class-is')
 const includes = require('lodash.includes')
 const isFunction = require('lodash.isfunction')
-const Connection = require('interface-connection').Connection
-const once = require('once')
+const errcode = require('err-code')
 const debug = require('debug')
 const log = debug('libp2p:tcp:dial')
 
+const Libp2pSocket = require('./socket')
 const createListener = require('./listener')
 
 function noop () {}
 
 class TCP {
-  dial (ma, options, callback) {
-    if (isFunction(options)) {
-      callback = options
-      options = {}
-    }
-
-    callback = once(callback || noop)
-
+  async dial (ma, options) {
     const cOpts = ma.toOptions()
-    log('Connecting to %s %s', cOpts.port, cOpts.host)
+    log('Connecting to %s:%s', cOpts.host, cOpts.port)
 
-    const rawSocket = net.connect(cOpts)
+    const rawSocket = await this._connect(cOpts)
+    return new Libp2pSocket(rawSocket, ma, options)
+  }
 
-    rawSocket.once('timeout', () => {
-      log('timeout')
-      rawSocket.emit('error', new Error('Timeout'))
+  _connect (cOpts) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now()
+      const rawSocket = net.connect(cOpts)
+
+      const onError = (err) => {
+        const msg = `Error connecting to ${cOpts.host}:${cOpts.port}: ${err.message}`
+        done(errcode(msg, err.code))
+      }
+
+      const onTimeout = () => {
+        log('Timeout connecting to %s:%s', cOpts.host, cOpts.port)
+        const err = errcode(`Timeout after ${Date.now() - start}ms`, 'ETIMEDOUT')
+        rawSocket.emit('error', err)
+      }
+
+      const onConnect = () => {
+        log('Connected to %s:%s', cOpts.host, cOpts.port)
+        done(null, rawSocket)
+      }
+
+      const done = (err, res) => {
+        rawSocket.removeListener('error', onError)
+        rawSocket.removeListener('timeout', onTimeout)
+        rawSocket.removeListener('connect', onConnect)
+
+        err ? reject(err) : resolve(res)
+      }
+
+      rawSocket.once('error', onError)
+      rawSocket.once('timeout', onTimeout)
+      rawSocket.once('connect', onConnect)
     })
-
-    rawSocket.once('error', callback)
-
-    rawSocket.once('connect', () => {
-      rawSocket.removeListener('error', callback)
-      callback()
-    })
-
-    const socket = toPull.duplex(rawSocket)
-
-    const conn = new Connection(socket)
-
-    conn.getObservedAddrs = (callback) => {
-      return callback(null, [ma])
-    }
-
-    return conn
   }
 
   createListener (options, handler) {
@@ -59,7 +65,6 @@ class TCP {
     }
 
     handler = handler || noop
-
     return createListener(handler)
   }
 
