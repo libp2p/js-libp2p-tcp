@@ -1,19 +1,16 @@
 'use strict'
 
 const multiaddr = require('multiaddr')
-const Connection = require('interface-connection').Connection
 const os = require('os')
 const includes = require('lodash.includes')
 const net = require('net')
-const toPull = require('stream-to-pull-stream')
 const EventEmitter = require('events').EventEmitter
 const debug = require('debug')
 const log = debug('libp2p:tcp:listen')
 
+const Libp2pSocket = require('./socket')
 const getMultiaddr = require('./get-multiaddr')
-
-const IPFS_CODE = 421
-const CLOSE_TIMEOUT = 2000
+const c = require('./constants')
 
 function noop () {}
 
@@ -21,7 +18,7 @@ module.exports = (handler) => {
   const listener = new EventEmitter()
 
   const server = net.createServer((socket) => {
-    // Avoid uncaught errors cause by unstable connections
+    // Avoid uncaught errors caused by unstable connections
     socket.on('error', noop)
 
     const addr = getMultiaddr(socket)
@@ -36,17 +33,11 @@ module.exports = (handler) => {
 
     log('new connection', addr.toString())
 
-    const s = toPull.duplex(socket)
-
-    s.getObservedAddrs = (cb) => {
-      cb(null, [addr])
-    }
-
+    const s = new Libp2pSocket(socket)
     trackSocket(server, socket)
 
-    const conn = new Connection(s)
-    handler(conn)
-    listener.emit('connection', conn)
+    handler && handler(s)
+    listener.emit('connection', s)
   })
 
   server.on('listening', () => listener.emit('listening'))
@@ -56,33 +47,35 @@ module.exports = (handler) => {
   // Keep track of open connections to destroy in case of timeout
   server.__connections = {}
 
-  listener.close = (options, callback) => {
-    if (typeof options === 'function') {
-      callback = options
-      options = {}
+  listener.close = (options = {}) => {
+    if (!server.listening) {
+      return
     }
-    callback = callback || noop
-    options = options || {}
 
-    const timeout = setTimeout(() => {
-      log('unable to close graciously, destroying conns')
-      Object.keys(server.__connections).forEach((key) => {
-        log('destroying %s', key)
-        server.__connections[key].destroy()
-      })
-    }, options.timeout || CLOSE_TIMEOUT)
+    return new Promise((resolve, reject) => {
+      const start = Date.now()
 
-    server.close(callback)
+      // Attempt to stop the server. If it takes longer than the timeout,
+      // destroy all the underlying sockets manually.
+      const timeout = setTimeout(() => {
+        log('Timeout closing server after %dms, destroying connections manually', Date.now() - start)
+        Object.keys(server.__connections).forEach((key) => {
+          log('destroying %s', key)
+          server.__connections[key].destroy()
+        })
+        resolve()
+      }, options.timeout || c.CLOSE_TIMEOUT)
 
-    server.once('close', () => {
-      clearTimeout(timeout)
+      server.once('close', () => clearTimeout(timeout))
+
+      server.close((err) => err ? reject(err) : resolve())
     })
   }
 
   let ipfsId
   let listeningAddr
 
-  listener.listen = (ma, callback) => {
+  listener.listen = (ma) => {
     listeningAddr = ma
     if (includes(ma.protoNames(), 'ipfs')) {
       ipfsId = getIpfsId(ma)
@@ -90,16 +83,24 @@ module.exports = (handler) => {
     }
 
     const lOpts = listeningAddr.toOptions()
-    log('Listening on %s %s', lOpts.port, lOpts.host)
-    return server.listen(lOpts.port, lOpts.host, callback)
+    return new Promise((resolve, reject) => {
+      server.listen(lOpts.port, lOpts.host, (err) => {
+        if (err) {
+          return reject(err)
+        }
+
+        log('Listening on %s %s', lOpts.port, lOpts.host)
+        resolve()
+      })
+    })
   }
 
-  listener.getAddrs = (callback) => {
+  listener.getAddrs = () => {
     const multiaddrs = []
     const address = server.address()
 
     if (!address) {
-      return callback(new Error('Listener is not ready yet'))
+      throw new Error('Listener is not ready yet')
     }
 
     // Because TCP will only return the IPv6 version
@@ -134,7 +135,7 @@ module.exports = (handler) => {
       multiaddrs.push(ma)
     }
 
-    callback(null, multiaddrs)
+    return multiaddrs
   }
 
   return listener
@@ -142,7 +143,7 @@ module.exports = (handler) => {
 
 function getIpfsId (ma) {
   return ma.stringTuples().filter((tuple) => {
-    return tuple[0] === IPFS_CODE
+    return tuple[0] === c.IPFS_MA_CODE
   })[0][1]
 }
 
@@ -150,7 +151,7 @@ function trackSocket (server, socket) {
   const key = `${socket.remoteAddress}:${socket.remotePort}`
   server.__connections[key] = socket
 
-  socket.on('close', () => {
+  socket.once('close', () => {
     delete server.__connections[key]
   })
 }
