@@ -14,17 +14,28 @@ const createListener = require('./listener')
 
 function noop () {}
 
+class AbortError extends Error {
+  constructor () {
+    super('AbortError')
+    this.code = 'ABORT_ERR'
+  }
+}
+
 class TCP {
   async dial (ma, options) {
     const cOpts = ma.toOptions()
     log('Connecting to %s:%s', cOpts.host, cOpts.port)
 
-    const rawSocket = await this._connect(cOpts)
+    const rawSocket = await this._connect(cOpts, options)
     return new Libp2pSocket(rawSocket, ma, options)
   }
 
-  _connect (cOpts) {
+  _connect (cOpts, options = {}) {
     return new Promise((resolve, reject) => {
+      if ((options.signal || {}).aborted) {
+        return reject(new AbortError())
+      }
+
       const start = Date.now()
       const rawSocket = net.connect(cOpts)
 
@@ -44,10 +55,17 @@ class TCP {
         done(null, rawSocket)
       }
 
+      const onAbort = () => {
+        log('Connect to %s:%s aborted', cOpts.host, cOpts.port)
+        rawSocket.destroy()
+        done(new AbortError())
+      }
+
       const done = (err, res) => {
         rawSocket.removeListener('error', onError)
         rawSocket.removeListener('timeout', onTimeout)
         rawSocket.removeListener('connect', onConnect)
+        options.signal && options.signal.removeEventListener(onAbort)
 
         err ? reject(err) : resolve(res)
       }
@@ -55,6 +73,7 @@ class TCP {
       rawSocket.once('error', onError)
       rawSocket.once('timeout', onTimeout)
       rawSocket.once('connect', onConnect)
+      options.signal && options.signal.addEventListener('abort', onAbort)
     })
   }
 
@@ -88,3 +107,4 @@ class TCP {
 }
 
 module.exports = withIs(TCP, { className: 'TCP', symbolName: '@libp2p/js-libp2p-tcp/tcp' })
+module.exports.AbortError = AbortError
