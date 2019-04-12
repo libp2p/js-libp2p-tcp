@@ -33,7 +33,7 @@ module.exports = (handler) => {
 
     log('new connection', addr.toString())
 
-    const s = new Libp2pSocket(socket)
+    const s = new Libp2pSocket(socket, addr)
     trackSocket(server, socket)
 
     handler && handler(s)
