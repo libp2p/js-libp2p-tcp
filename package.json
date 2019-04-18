@@ -47,14 +47,17 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "class-is": "^1.1.0",
+    "debug": "^4.1.1",
     "err-code": "^1.1.2",
     "interface-connection": "~0.3.3",
     "interface-transport": "libp2p/interface-transport#feat/listen-array",
     "ip-address": "^5.8.9",
+    "it-pipe": "^1.0.0",
     "lodash.includes": "^4.3.0",
     "lodash.isfunction": "^3.0.9",
     "mafmt": "^6.0.7",
-    "multiaddr": "^6.0.6"
+    "multiaddr": "^6.0.6",
+    "streaming-iterables": "^4.1.0"
   },
   "contributors": [
     "Alan Shaw <alan@tableflip.io>",
