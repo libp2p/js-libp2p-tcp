@@ -18,6 +18,7 @@ after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codeco
 jobs:
   include:
     - os: linux
+      sudo: false
       before_script: sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
 
     - os: windows
@@ -25,6 +26,7 @@ jobs:
       cache: false
 
     - stage: check
+      os: linux
       script:
         - npx aegir build --bundlesize
         - npx aegir commitlint --travis
