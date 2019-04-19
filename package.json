@@ -50,7 +50,7 @@
     "debug": "^4.1.1",
     "err-code": "^1.1.2",
     "interface-connection": "~0.3.3",
-    "interface-transport": "libp2p/interface-transport#feat/listen-array",
+    "interface-transport": "~0.4.0",
     "ip-address": "^5.8.9",
     "it-pipe": "^1.0.0",
     "lodash.includes": "^4.3.0",
