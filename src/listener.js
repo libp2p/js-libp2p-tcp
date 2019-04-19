@@ -17,7 +17,7 @@ function noop () {}
 
 class Listener extends EventEmitter {
   /**
-   *
+   * @constructor
    * @param {object} options
    * @param {function(Connection)} handler
    */
@@ -30,13 +30,22 @@ class Listener extends EventEmitter {
   }
 
   /**
+   * Whether or not there is currently at least 1 server listening
+   * @private
+   * @returns {boolean}
+   */
+  _isListening () {
+    return [...this._servers].filter(server => server.listening).length > 0
+  }
+
+  /**
    * Closes all open servers
    * @param {object} options
    * @param {number} options.timeout how long before closure is forced, defaults to 2000 ms
    * @returns {Promise}
    */
   close (options = {}) {
-    if ([...this._servers].filter(server => server.listening).length === 0) {
+    if (!this._isListening()) {
       return
     }
 
@@ -95,9 +104,15 @@ class Listener extends EventEmitter {
         new Promise((resolve) => {
           const server = net.createServer(this._onSocket.bind(this))
           this._servers.add(server)
-          // TODO: clean these up
+
           server.on('listening', () => this.emit('listening'))
-          server.on('close', () => this.emit('close'))
+          server.on('close', () => {
+            // only emit if we're not listening
+            if (!this._isListening()) {
+              this.emit('close')
+            }
+            this._servers.delete(server)
+          })
           server.on('error', (err) => this.emit('error', err))
 
           server.listen(lOpts.port, lOpts.host, (err) => {
@@ -128,6 +143,7 @@ class Listener extends EventEmitter {
 
   /**
    * Return the addresses we are listening on
+   * @throws
    * @returns {Array<Multiaddr>}
    */
   getAddrs () {
@@ -139,7 +155,7 @@ class Listener extends EventEmitter {
         const netInterfaces = os.networkInterfaces()
         Object.keys(netInterfaces).forEach((niKey) => {
           netInterfaces[niKey].forEach((ni) => {
-            if (ni.internal === false && ni.family === address.family) {
+            if (address.family === ni.family) {
               multiaddrs.push(
                 multiaddr.fromNodeAddress({
                   ...address,
@@ -149,7 +165,6 @@ class Listener extends EventEmitter {
             }
           })
         })
-      // TODO: handle IPv6 wildcard
       } else {
         multiaddrs.push(multiaddr.fromNodeAddress(address, 'tcp'))
       }
