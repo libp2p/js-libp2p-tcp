@@ -29,6 +29,12 @@ class Listener extends EventEmitter {
     this.__connections = new Map()
   }
 
+  /**
+   * Closes all open servers
+   * @param {object} options
+   * @param {number} options.timeout how long before closure is forced, defaults to 2000 ms
+   * @returns {Promise}
+   */
   close (options = {}) {
     if ([...this._servers].filter(server => server.listening).length === 0) {
       return
@@ -65,6 +71,11 @@ class Listener extends EventEmitter {
     })
   }
 
+  /**
+   * Creates servers listening on the given `addrs`
+   * @async
+   * @param {Array<Multiaddr>} addrs
+   */
   async listen (addrs) {
     addrs = Array.isArray(addrs) ? addrs : [addrs]
 
@@ -115,6 +126,10 @@ class Listener extends EventEmitter {
       })
   }
 
+  /**
+   * Return the addresses we are listening on
+   * @returns {Array<Multiaddr>}
+   */
   getAddrs () {
     const multiaddrs = []
     this._servers.forEach(server => {
