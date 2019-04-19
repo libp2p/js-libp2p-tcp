@@ -9,9 +9,6 @@ stages:
 node_js:
   - '10'
 
-os:
-  - osx
-
 script: npx nyc -s npm run test:node -- --bail
 after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov
 
@@ -24,6 +21,8 @@ jobs:
     - os: windows
       filter_secrets: false
       cache: false
+
+    - os: osx
 
     - stage: check
       os: linux
