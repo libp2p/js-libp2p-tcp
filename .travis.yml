@@ -10,7 +10,6 @@ node_js:
   - '10'
 
 os:
-  - linux
   - osx
 
 script: npx nyc -s npm run test:node -- --bail
@@ -18,6 +17,9 @@ after_success: npx nyc report --reporter=text-lcov > coverage.lcov && npx codeco
 
 jobs:
   include:
+    - os: linux
+      before_script: sudo sh -c 'echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6'
+
     - os: windows
       filter_secrets: false
       cache: false
