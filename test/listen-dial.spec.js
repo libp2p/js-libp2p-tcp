@@ -38,7 +38,7 @@ describe('listen', () => {
 
     await new Promise((resolve) => {
       socket1.on('connect', async () => {
-        await listener.close()
+        await listener.close({ timeout: 100 })
         resolve()
       })
     })

@@ -52,25 +52,27 @@ class Listener extends EventEmitter {
     // Close all running servers in parallel
     return Promise.all(
       [...this._servers].map(server => {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           const start = Date.now()
 
           // Attempt to stop the server. If it takes longer than the timeout,
-          // destroy all the underlying sockets manually.
+          // resolve the promise. Any remaining connections will be destroyed after
           const timeout = setTimeout(() => {
             log('Timeout closing server after %dms, destroying connections manually', Date.now() - start)
             resolve()
           }, options.timeout || c.CLOSE_TIMEOUT)
 
-          server.once('close', () => {
-            clearTimeout(timeout)
-            this._servers.delete(server)
+          // Just clear the timeout, cleanup listeners are added on server creation
+          server.once('close', () => clearTimeout(timeout))
+          server.close((err) => {
+            // log the error and resolve so we don't exit early
+            err && log.error('an error occurred closing the server', err)
+            resolve()
           })
-
-          server.close((err) => err ? reject(err) : resolve())
         })
       })
     ).then(() => {
+      // Destroy all remaining connections
       this.__connections.forEach((connection, key) => {
         log('destroying %s', key)
         connection.destroy()
@@ -107,11 +109,7 @@ class Listener extends EventEmitter {
 
           server.on('listening', () => this.emit('listening'))
           server.on('close', () => {
-            // only emit if we're not listening
-            if (!this._isListening()) {
-              this.emit('close')
-            }
-            this._servers.delete(server)
+            this._removeServer(server)
           })
           server.on('error', (err) => this.emit('error', err))
 
@@ -139,6 +137,22 @@ class Listener extends EventEmitter {
           throw new AllListenersFailedError()
         }
       })
+  }
+
+  /**
+   * Removes the server from tracking and performs cleanup.
+   * If all servers have been closed, `close` will be emitted by
+   * the listener.
+   * @private
+   * @param {net.Server} server
+   */
+  _removeServer (server) {
+    // only emit if we're not listening
+    if (!this._isListening()) {
+      this.emit('close')
+    }
+    this._servers.delete(server)
+    server.removeAllListeners()
   }
 
   /**
@@ -204,6 +218,7 @@ class Listener extends EventEmitter {
     this.__connections.set(key, socket)
     socket.once('close', () => {
       this.__connections.delete(key)
+      socket.removeAllListeners()
     })
 
     this._connectionHandler(s)
