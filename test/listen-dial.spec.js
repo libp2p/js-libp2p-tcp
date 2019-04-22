@@ -38,7 +38,7 @@ describe('listen', () => {
 
     await new Promise((resolve) => {
       socket1.on('connect', async () => {
-        await listener.close()
+        await listener.close({ timeout: 100 })
         resolve()
       })
     })
@@ -115,14 +115,14 @@ describe('listen', () => {
     await listener.close()
   })
 
-  it('getAddrs preserves IPFS Id', async () => {
+  it('getAddrs does not preserve IPFS Id', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
     const listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length).to.equal(1)
-    expect(multiaddrs[0]).to.deep.equal(mh)
+    expect(multiaddrs[0]).to.deep.equal(mh.decapsulate('ipfs'))
 
     await listener.close()
   })
@@ -183,7 +183,7 @@ describe('dial', () => {
       handled = resolve
     })
 
-    const ma = multiaddr('/ip6/::/tcp/9067')
+    const ma = multiaddr('/ip6/::/tcp/0')
 
     const listener = tcp.createListener(async (conn) => {
       await pipe(
@@ -194,7 +194,8 @@ describe('dial', () => {
     })
 
     await listener.listen(ma)
-    await pipe(await tcp.dial(ma))
+    const addrs = listener.getAddrs()
+    await pipe(await tcp.dial(addrs[0]))
 
     await handledPromise
     await listener.close()
@@ -210,7 +211,7 @@ describe('dial', () => {
       handled = resolve
     })
 
-    const ma = multiaddr('/ip6/::/tcp/9068')
+    const ma = multiaddr('/ip6/::/tcp/0')
 
     const listener = tcp.createListener(async (conn) => {
       // pull(conn, pull.onEnd(destroyed))
@@ -219,7 +220,8 @@ describe('dial', () => {
     })
 
     await listener.listen(ma)
-    await pipe([], await tcp.dial(ma))
+    const addrs = listener.getAddrs()
+    await pipe([], await tcp.dial(addrs[0]))
 
     await handledPromise
     await listener.close()

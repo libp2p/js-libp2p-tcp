@@ -78,7 +78,7 @@ class TCP {
     }
 
     handler = handler || noop
-    return createListener(handler)
+    return createListener(options, handler)
   }
 
   filter (multiaddrs) {

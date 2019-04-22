@@ -114,14 +114,14 @@ describe('listen', () => {
     })
   })
 
-  it('getAddrs preserves IPFS Id', (done) => {
+  it('getAddrs does not preserve IPFS Id', (done) => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
     const listener = tcp.createListener((conn) => {})
     listener.listen(mh, () => {
       listener.getAddrs((err, multiaddrs) => {
         expect(err).to.not.exist()
         expect(multiaddrs.length).to.equal(1)
-        expect(multiaddrs[0]).to.deep.equal(mh)
+        expect(multiaddrs[0]).to.deep.equal(mh.decapsulate('ipfs'))
         listener.close(done)
       })
     })
