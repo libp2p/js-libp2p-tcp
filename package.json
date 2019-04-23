@@ -10,9 +10,9 @@
     "test:node": "aegir test -t node",
     "build": "aegir build",
     "docs": "aegir docs",
-    "release": "aegir release --docs -t node",
-    "release-minor": "aegir release --type minor --docs -t node",
-    "release-major": "aegir release --type major --docs -t node",
+    "release": "aegir release -t node --no-build",
+    "release-minor": "aegir release -t node --type minor --no-build",
+    "release-major": "aegir-release -t node --type major --no-build",
     "coverage": "aegir coverage",
     "coverage-publish": "aegir-coverage publish"
   },
@@ -45,7 +45,6 @@
     "sinon": "^7.3.1"
   },
   "dependencies": {
-    "abort-controller": "^3.0.0",
     "abortable-iterator": "^2.0.0",
     "class-is": "^1.1.0",
     "debug": "^4.1.1",
