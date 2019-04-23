@@ -119,7 +119,7 @@ class Listener extends EventEmitter {
               return resolve()
             }
 
-            log('Listening on %s %s', lOpts.port, lOpts.host)
+            log('Listening on %s:%s', lOpts.host, lOpts.port)
             resolve()
           })
         })

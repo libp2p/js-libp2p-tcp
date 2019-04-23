@@ -18,7 +18,7 @@ function noop () {}
 class TCP {
   async dial (ma, options) {
     const cOpts = ma.toOptions()
-    log('Connecting to %s:%s', cOpts.host, cOpts.port)
+    log('Dialing %s:%s', cOpts.host, cOpts.port)
 
     const rawSocket = await this._connect(cOpts, options)
     return new Libp2pSocket(rawSocket, ma, options)
@@ -34,13 +34,14 @@ class TCP {
       const rawSocket = net.connect(cOpts)
 
       const onError = (err) => {
-        const msg = `Error connecting to ${cOpts.host}:${cOpts.port}: ${err.message}`
+        const msg = `Error dialing ${cOpts.host}:${cOpts.port}: ${err.message}`
         done(errcode(msg, err.code))
       }
 
       const onTimeout = () => {
-        log('Timeout connecting to %s:%s', cOpts.host, cOpts.port)
+        log('Timeout dialing %s:%s', cOpts.host, cOpts.port)
         const err = errcode(`Timeout after ${Date.now() - start}ms`, 'ETIMEDOUT')
+        // Note: this will result in onError() being called
         rawSocket.emit('error', err)
       }
 
@@ -50,7 +51,7 @@ class TCP {
       }
 
       const onAbort = () => {
-        log('Connect to %s:%s aborted', cOpts.host, cOpts.port)
+        log('Dial to %s:%s aborted', cOpts.host, cOpts.port)
         rawSocket.destroy()
         done(new AbortError())
       }
@@ -59,7 +60,8 @@ class TCP {
         rawSocket.removeListener('error', onError)
         rawSocket.removeListener('timeout', onTimeout)
         rawSocket.removeListener('connect', onConnect)
-        options.signal && options.signal.removeEventListener(onAbort)
+
+        options.signal && options.signal.removeEventListener('abort', onAbort)
 
         err ? reject(err) : resolve(res)
       }
