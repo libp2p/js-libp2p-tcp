@@ -1,27 +1,48 @@
 'use strict'
 
+const abortable = require('abortable-iterator')
 const debug = require('debug')
 const log = debug('libp2p:tcp:socket')
 
 const c = require('./constants')
 
 class Libp2pSocket {
-  constructor (rawSocket, ma, opts) {
+  constructor (rawSocket, ma, opts = {}) {
     this._rawSocket = rawSocket
     this._ma = ma
 
     this.sink = this._sink(opts)
-    this.source = rawSocket
+    this.source = opts.signal ? abortable(rawSocket, opts.signal) : rawSocket
   }
 
-  _sink (opts = {}) {
+  _sink (opts) {
     // By default, close when the source is exhausted
     const closeOnEnd = opts.closeOnEnd !== false
-    return (source) => this._write(source, closeOnEnd)
+
+    return async (source) => {
+      try {
+        const src = opts.signal ? abortable(source, opts.signal) : source
+        await this._write(src, closeOnEnd)
+      } catch (err) {
+        // If the connection is aborted just close the socket
+        if (err.type === 'aborted') {
+          return this.close()
+        }
+
+        throw err
+      }
+    }
   }
 
   async _write (source, closeOnEnd) {
     for await (const data of source) {
+      if (this._rawSocket.destroyed) {
+        const cOpts = this._ma.toOptions()
+        log('Cannot write %d bytes to destroyed socket %s:%s',
+          data.length, cOpts.host, cOpts.port)
+        return
+      }
+
       const flushed = this._rawSocket.write(data)
       if (!flushed) {
         await new Promise((resolve) => this._rawSocket.once('drain', resolve))
