@@ -44,7 +44,7 @@ const multiaddr = require('multiaddr')
 const pipe = require('it-pipe')
 const { collect } = require('streaming-iterables')
 
-const addr = multiaddr('/ip4/127.0.0.1/tcp/9090')
+const mh = multiaddr('/ip4/127.0.0.1/tcp/9090')
 
 const tcp = new TCP()
 
@@ -56,10 +56,10 @@ const listener = tcp.createListener((socket) => {
   )
 })
 
-await listener.listen([addr])
+await listener.listen(mh)
 console.log('listening')
 
-const socket = await tcp.dial(addr)
+const socket = await tcp.dial(mh)
 const values = await pipe(
   socket,
   collect
