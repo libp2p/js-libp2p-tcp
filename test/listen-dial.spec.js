@@ -38,7 +38,7 @@ describe('listen', () => {
 
     await new Promise((resolve) => {
       socket1.on('connect', async () => {
-        await listener.close()
+        await listener.close({ timeout: 100 })
         resolve()
       })
     })
@@ -183,7 +183,7 @@ describe('dial', () => {
       handled = resolve
     })
 
-    const ma = multiaddr('/ip6/::/tcp/9067')
+    const ma = multiaddr('/ip6/::/tcp/0')
 
     const listener = tcp.createListener(async (conn) => {
       await pipe(
@@ -194,7 +194,8 @@ describe('dial', () => {
     })
 
     await listener.listen(ma)
-    await pipe(await tcp.dial(ma))
+    const addrs = listener.getAddrs()
+    await pipe(await tcp.dial(addrs[0]))
 
     await handledPromise
     await listener.close()
@@ -210,7 +211,7 @@ describe('dial', () => {
       handled = resolve
     })
 
-    const ma = multiaddr('/ip6/::/tcp/9068')
+    const ma = multiaddr('/ip6/::/tcp/0')
 
     const listener = tcp.createListener(async (conn) => {
       // pull(conn, pull.onEnd(destroyed))
@@ -219,7 +220,8 @@ describe('dial', () => {
     })
 
     await listener.listen(ma)
-    await pipe([], await tcp.dial(ma))
+    const addrs = listener.getAddrs()
+    await pipe(await tcp.dial(addrs[0]))
 
     await handledPromise
     await listener.close()
