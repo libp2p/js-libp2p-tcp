@@ -38,9 +38,8 @@ class Libp2pSocket {
     for await (const data of source) {
       if (this._rawSocket.destroyed) {
         const cOpts = this._ma.toOptions()
-        log('Cannot write %d bytes to destroyed socket %s:%s',
+        throw new Error('Cannot write %d bytes to destroyed socket %s:%s',
           data.length, cOpts.host, cOpts.port)
-        return
       }
 
       const flushed = this._rawSocket.write(data)
