@@ -7,19 +7,20 @@ const net = require('net')
 const EventEmitter = require('events').EventEmitter
 const debug = require('debug')
 const log = debug('libp2p:tcp:listen')
+const logError = debug('libp2p:tcp:listen:error')
 
 const Libp2pSocket = require('./socket')
 const getMultiaddr = require('./get-multiaddr')
 const c = require('./constants')
-
-function noop () {}
 
 module.exports = (handler) => {
   const listener = new EventEmitter()
 
   const server = net.createServer((socket) => {
     // Avoid uncaught errors caused by unstable connections
-    socket.on('error', noop)
+    socket.on('error', (err) => {
+      logError('Error emitted by server handler socket: ' + err.message)
+    })
 
     const addr = getMultiaddr(socket)
     if (!addr) {
