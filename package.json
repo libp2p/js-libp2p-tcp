@@ -14,10 +14,6 @@
     "coverage": "aegir coverage",
     "coverage-publish": "aegir coverage --provider coveralls"
   },
-  "pre-push": [
-    "lint",
-    "test"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/libp2p/js-libp2p-tcp.git"
@@ -40,7 +36,7 @@
     "dirty-chai": "^2.0.1",
     "interface-transport": "~0.3.6",
     "lodash.isfunction": "^3.0.9",
-    "pull-stream": "^3.6.9"
+    "pull-stream": "^3.6.11"
   },
   "dependencies": {
     "class-is": "^1.1.0",
