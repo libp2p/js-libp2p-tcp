@@ -47,9 +47,7 @@ describe('valid Connection', () => {
     await listener.close()
 
     // The addresses should match
-    expect(addrs.length).to.equal(1)
-    expect(addrs[0]).to.deep.equal(ma)
-    expect(dialerObsAddrs.length).to.equal(1)
-    expect(dialerObsAddrs[0]).to.exist()
+    expect(addrs).to.deep.equal(ma)
+    expect(dialerObsAddrs).to.exist()
   })
 })

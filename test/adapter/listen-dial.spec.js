@@ -11,7 +11,7 @@ const net = require('net')
 const multiaddr = require('multiaddr')
 const isCI = process.env.CI
 
-describe('listen', () => {
+describe.skip('listen', () => {
   let tcp
 
   beforeEach(() => {
@@ -128,7 +128,7 @@ describe('listen', () => {
   })
 })
 
-describe('dial', () => {
+describe.skip('dial', () => {
   let tcp
   let listener
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')

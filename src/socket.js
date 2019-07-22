@@ -4,10 +4,14 @@ const abortable = require('abortable-iterator')
 const debug = require('debug')
 const log = debug('libp2p:tcp:socket')
 
+const { Connection } = require('interface-connection')
+
 const c = require('./constants')
 
-class Libp2pSocket {
+class Libp2pSocket extends Connection {
   constructor (rawSocket, ma, opts = {}) {
+    super(ma)
+
     this._rawSocket = rawSocket
     this._ma = ma
 
@@ -75,10 +79,6 @@ class Libp2pSocket {
 
       this._rawSocket.end((err) => err ? reject(err) : resolve())
     })
-  }
-
-  getObservedAddrs () {
-    return [this._ma]
   }
 }
 
