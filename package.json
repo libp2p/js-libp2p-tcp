@@ -40,23 +40,22 @@
     "aegir": "^20.0.0",
     "chai": "^4.2.0",
     "dirty-chai": "^2.0.1",
-    "lodash.isfunction": "^3.0.9",
     "pull-stream": "^3.6.9",
-    "sinon": "^7.3.1"
+    "sinon": "^7.4.1"
   },
   "dependencies": {
-    "abortable-iterator": "^2.0.0",
+    "abortable-iterator": "^2.1.0",
     "class-is": "^1.1.0",
     "debug": "^4.1.1",
     "err-code": "^1.1.2",
     "interface-connection": "~0.3.3",
-    "interface-transport": "~0.5.0",
-    "ip-address": "^5.8.9",
-    "it-pipe": "^1.0.0",
+    "interface-transport": "~0.5.2",
+    "ip-address": "^6.1.0",
+    "it-pipe": "^1.0.1",
     "lodash.includes": "^4.3.0",
     "lodash.isfunction": "^3.0.9",
-    "mafmt": "^6.0.7",
-    "multiaddr": "^6.0.6",
+    "mafmt": "^6.0.8",
+    "multiaddr": "^6.1.0",
     "streaming-iterables": "^4.1.0"
   },
   "contributors": [
