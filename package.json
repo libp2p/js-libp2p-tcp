@@ -13,12 +13,10 @@
     "release": "aegir release -t node --no-build",
     "release-minor": "aegir release -t node --type minor --no-build",
     "release-major": "aegir-release -t node --type major --no-build",
-    "coverage": "aegir coverage",
-    "coverage-publish": "aegir-coverage publish"
+    "coverage": "nyc --reporter=text --reporter=lcov npm run test:node"
   },
   "pre-push": [
-    "lint",
-    "test"
+    "lint"
   ],
   "repository": {
     "type": "git",
