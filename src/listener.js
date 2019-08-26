@@ -1,4 +1,7 @@
 'use strict'
+/**
+ * @module js-libp2p-tcp/listener
+ */
 
 const multiaddr = require('multiaddr')
 const Connection = require('interface-connection').Connection
@@ -17,7 +20,12 @@ const CLOSE_TIMEOUT = 2000
 
 function noop () {}
 
-module.exports = (handler) => {
+/**
+ * @type {function}
+ * @param {function} handler
+ * @returns {*}
+ */
+function listener (handler) {
   const listener = new EventEmitter()
 
   const server = net.createServer((socket) => {
@@ -139,6 +147,8 @@ module.exports = (handler) => {
 
   return listener
 }
+
+module.exports = listener
 
 function getIpfsId (ma) {
   return ma.stringTuples().filter((tuple) => {

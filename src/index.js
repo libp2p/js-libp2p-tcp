@@ -1,5 +1,7 @@
 'use strict'
-
+/**
+ * @module js-libp2p-tcp
+ */
 const net = require('net')
 const toPull = require('stream-to-pull-stream')
 const mafmt = require('mafmt')
@@ -15,7 +17,17 @@ const createListener = require('./listener')
 
 function noop () {}
 
+/**
+ * @class
+ */
 class TCP {
+  /**
+   *
+   * @param {*} ma
+   * @param {object} options
+   * @param {function} callback
+   * @returns {*}
+   */
   dial (ma, options, callback) {
     if (isFunction(options)) {
       callback = options
@@ -52,6 +64,12 @@ class TCP {
     return conn
   }
 
+  /**
+   *
+   * @param {object} options
+   * @param {function} handler
+   * @returns {*}
+   */
   createListener (options, handler) {
     if (isFunction(options)) {
       handler = options
@@ -63,6 +81,11 @@ class TCP {
     return createListener(handler)
   }
 
+  /**
+   *
+   * @param {Array<*>|*} multiaddrs
+   * @returns {*}
+   */
   filter (multiaddrs) {
     if (!Array.isArray(multiaddrs)) {
       multiaddrs = [multiaddrs]

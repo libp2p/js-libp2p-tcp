@@ -1,11 +1,18 @@
 'use strict'
-
+/**
+ * @module js-libp2p-tcp/get-multiaddr
+ */
 const multiaddr = require('multiaddr')
 const Address6 = require('ip-address').Address6
 const debug = require('debug')
 const log = debug('libp2p:tcp:get-multiaddr')
 
-module.exports = (socket) => {
+/**
+ * @type {function}
+ * @param {*} socket
+ * @returns {*}
+ */
+function getMultiAddr (socket) {
   let ma
 
   try {
@@ -31,3 +38,5 @@ module.exports = (socket) => {
   }
   return ma
 }
+
+module.exports = getMultiAddr
