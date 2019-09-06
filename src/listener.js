@@ -2,48 +2,33 @@
 
 const multiaddr = require('multiaddr')
 const os = require('os')
-const includes = require('lodash.includes')
 const net = require('net')
-const EventEmitter = require('events').EventEmitter
-const debug = require('debug')
-const log = debug('libp2p:tcp:listen')
-const logError = debug('libp2p:tcp:listen:error')
+const EventEmitter = require('events')
+const log = require('debug')('libp2p:tcp:listener')
+const toConnection = require('./socket-to-conn')
+const { IPFS_MA_CODE, CLOSE_TIMEOUT } = require('./constants')
 
-const Libp2pSocket = require('./socket')
-const getMultiaddr = require('./get-multiaddr')
-const c = require('./constants')
-
-module.exports = (handler) => {
+module.exports = ({ handler, upgrader }, options) => {
   const listener = new EventEmitter()
 
-  const server = net.createServer((socket) => {
+  const server = net.createServer(async socket => {
     // Avoid uncaught errors caused by unstable connections
-    socket.on('error', (err) => {
-      logError('Error emitted by server handler socket: ' + err.message)
-    })
+    socket.on('error', err => log('socket error', err))
 
-    const addr = getMultiaddr(socket)
-    if (!addr) {
-      if (socket.remoteAddress === undefined) {
-        log('connection closed before p2p connection made')
-      } else {
-        log('error interpreting incoming p2p connection')
-      }
-      return
-    }
+    const maConn = toConnection(socket)
+    const conn = upgrader.upgradeInbound(maConn)
+    log('new connection %s', conn.remoteAddr)
 
-    log('new connection', addr.toString())
+    trackConn(server, maConn)
 
-    const s = new Libp2pSocket(socket, addr)
-    trackSocket(server, socket)
-
-    handler && handler(s)
-    listener.emit('connection', s)
+    if (handler) handler(conn)
+    listener.emit('connection', conn)
   })
 
-  server.on('listening', () => listener.emit('listening'))
-  server.on('error', (err) => listener.emit('error', err))
-  server.on('close', () => listener.emit('close'))
+  server
+    .on('listening', () => listener.emit('listening'))
+    .on('error', err => listener.emit('error', err))
+    .on('close', () => listener.emit('close'))
 
   // Keep track of open connections to destroy in case of timeout
   server.__connections = {}
@@ -60,16 +45,16 @@ module.exports = (handler) => {
       // destroy all the underlying sockets manually.
       const timeout = setTimeout(() => {
         log('Timeout closing server after %dms, destroying connections manually', Date.now() - start)
-        Object.keys(server.__connections).forEach((key) => {
+        Object.keys(server.__connections).forEach(key => {
           log('destroying %s', key)
-          server.__connections[key].destroy()
+          server.__connections[key].conn.destroy()
         })
         resolve()
-      }, options.timeout || c.CLOSE_TIMEOUT)
+      }, options.timeout || CLOSE_TIMEOUT)
 
-      server.once('close', () => clearTimeout(timeout))
-
-      server.close((err) => err ? reject(err) : resolve())
+      server
+        .once('close', () => clearTimeout(timeout))
+        .close(err => err ? reject(err) : resolve())
     })
   }
 
@@ -78,7 +63,7 @@ module.exports = (handler) => {
 
   listener.listen = (ma) => {
     listeningAddr = ma
-    if (includes(ma.protoNames(), 'ipfs')) {
+    if (ma.protoNames().includes('ipfs')) {
       ipfsId = getIpfsId(ma)
       listeningAddr = ma.decapsulate('ipfs')
     }
@@ -143,16 +128,14 @@ module.exports = (handler) => {
 }
 
 function getIpfsId (ma) {
-  return ma.stringTuples().filter((tuple) => {
-    return tuple[0] === c.IPFS_MA_CODE
-  })[0][1]
+  return ma.stringTuples().filter(tuple => tuple[0] === IPFS_MA_CODE)[0][1]
 }
 
-function trackSocket (server, socket) {
-  const key = `${socket.remoteAddress}:${socket.remotePort}`
-  server.__connections[key] = socket
+function trackConn (server, maConn) {
+  const key = maConn.remoteAddr.toString()
+  server.__connections[key] = maConn
 
-  socket.once('close', () => {
+  maConn.conn.once('close', () => {
     delete server.__connections[key]
   })
 }

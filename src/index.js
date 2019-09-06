@@ -3,97 +3,94 @@
 const net = require('net')
 const mafmt = require('mafmt')
 const withIs = require('class-is')
-const includes = require('lodash.includes')
-const isFunction = require('lodash.isfunction')
-const errcode = require('err-code')
-const debug = require('debug')
-const log = debug('libp2p:tcp:dial')
-
-const Libp2pSocket = require('./socket')
+const errCode = require('err-code')
+const log = require('debug')('libp2p:tcp')
+const toConnection = require('./socket-to-conn')
 const createListener = require('./listener')
 const { AbortError } = require('interface-transport')
 
-function noop () {}
-
 class TCP {
-  async dial (ma, options) {
-    const cOpts = ma.toOptions()
-    log('Dialing %s:%s', cOpts.host, cOpts.port)
-
-    const rawSocket = await this._connect(cOpts, options)
-    return new Libp2pSocket(rawSocket, ma, options)
+  constructor ({ upgrader }) {
+    this._upgrader = upgrader
   }
 
-  _connect (cOpts, options = {}) {
-    return new Promise((resolve, reject) => {
-      if ((options.signal || {}).aborted) {
-        return reject(new AbortError())
-      }
+  async dial (ma, options) {
+    const socket = await this._connect(ma, options)
+    return this._upgrader.upgradeOutbound(toConnection(socket, options))
+  }
 
+  _connect (ma, options = {}) {
+    if (options.signal && options.signal.aborted) {
+      throw new AbortError()
+    }
+
+    return new Promise((resolve, reject) => {
       const start = Date.now()
+      const cOpts = ma.toOptions()
+
+      log('dialing %s:%s', cOpts.host, cOpts.port)
       const rawSocket = net.connect(cOpts)
 
-      const onError = (err) => {
-        const msg = `Error dialing ${cOpts.host}:${cOpts.port}: ${err.message}`
-        done(errcode(msg, err.code))
+      const onError = err => {
+        err.message = `connection error ${cOpts.host}:${cOpts.port}: ${err.message}`
+        done(err)
       }
 
       const onTimeout = () => {
-        log('Timeout dialing %s:%s', cOpts.host, cOpts.port)
-        const err = errcode(`Timeout after ${Date.now() - start}ms`, 'ETIMEDOUT')
+        log('connnection timeout %s:%s', cOpts.host, cOpts.port)
+        const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ETIMEDOUT')
         // Note: this will result in onError() being called
         rawSocket.emit('error', err)
       }
 
       const onConnect = () => {
-        log('Connected to %s:%s', cOpts.host, cOpts.port)
-        done(null, rawSocket)
+        log('connection opened %s:%s', cOpts.host, cOpts.port)
+        done()
       }
 
       const onAbort = () => {
-        log('Dial to %s:%s aborted', cOpts.host, cOpts.port)
+        log('connection aborted %s:%s', cOpts.host, cOpts.port)
         rawSocket.destroy()
         done(new AbortError())
       }
 
-      const done = (err, res) => {
+      const done = err => {
         rawSocket.removeListener('error', onError)
         rawSocket.removeListener('timeout', onTimeout)
         rawSocket.removeListener('connect', onConnect)
-
         options.signal && options.signal.removeEventListener('abort', onAbort)
 
-        err ? reject(err) : resolve(res)
+        if (err) return reject(err)
+        resolve(rawSocket)
       }
 
-      rawSocket.once('error', onError)
-      rawSocket.once('timeout', onTimeout)
-      rawSocket.once('connect', onConnect)
+      rawSocket.on('error', onError)
+      rawSocket.on('timeout', onTimeout)
+      rawSocket.on('connect', onConnect)
       options.signal && options.signal.addEventListener('abort', onAbort)
     })
   }
 
   createListener (options, handler) {
-    if (isFunction(options)) {
+    if (typeof options === 'function') {
       handler = options
       options = {}
     }
-
-    handler = handler || noop
-    return createListener(handler)
+    options = options || {}
+    return createListener({ handler, upgrader: this._upgrader }, options)
   }
 
   filter (multiaddrs) {
-    if (!Array.isArray(multiaddrs)) {
-      multiaddrs = [multiaddrs]
-    }
+    multiaddrs = Array.isArray(multiaddrs) ? multiaddrs : [multiaddrs]
 
-    return multiaddrs.filter((ma) => {
-      if (includes(ma.protoNames(), 'p2p-circuit')) {
+    return multiaddrs.filter(ma => {
+      const protos = ma.protoNames()
+
+      if (protos.includes('p2p-circuit')) {
         return false
       }
 
-      if (includes(ma.protoNames(), 'ipfs')) {
+      if (protos.includes('ipfs')) {
         ma = ma.decapsulate('ipfs')
       }
 
