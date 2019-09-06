@@ -17,7 +17,7 @@ const { AbortError } = require('interface-transport')
 function noop () {}
 
 class TCP {
-  constructor(options) {
+  constructor (options) {
     assert(options && options.upgrader, 'An Upgrader must be provided')
     this.upgrader = options.upgrader
   }
