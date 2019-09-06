@@ -13,7 +13,7 @@ const Libp2pSocket = require('./socket')
 const getMultiaddr = require('./get-multiaddr')
 const c = require('./constants')
 
-module.exports = (handler) => {
+module.exports = (handler, upgrader) => {
   const listener = new EventEmitter()
 
   const server = net.createServer((socket) => {
@@ -37,8 +37,9 @@ module.exports = (handler) => {
     const s = new Libp2pSocket(socket, addr)
     trackSocket(server, socket)
 
-    handler && handler(s)
-    listener.emit('connection', s)
+    const conn = upgrader.upgradeInbound(s)
+    handler && handler(conn)
+    listener.emit('connection', conn)
   })
 
   server.on('listening', () => listener.emit('listening'))

@@ -8,6 +8,7 @@ const isFunction = require('lodash.isfunction')
 const errcode = require('err-code')
 const debug = require('debug')
 const log = debug('libp2p:tcp:dial')
+const assert = require('assert')
 
 const Libp2pSocket = require('./socket')
 const createListener = require('./listener')
@@ -16,12 +17,17 @@ const { AbortError } = require('interface-transport')
 function noop () {}
 
 class TCP {
+  constructor(options) {
+    assert(options.upgrader, 'An Upgrader must be provided')
+    this.upgrader = options.upgrader
+  }
+
   async dial (ma, options) {
     const cOpts = ma.toOptions()
     log('Dialing %s:%s', cOpts.host, cOpts.port)
 
     const rawSocket = await this._connect(cOpts, options)
-    return new Libp2pSocket(rawSocket, ma, options)
+    return this.upgrader.upgradeOutbound(new Libp2pSocket(rawSocket, ma, options))
   }
 
   _connect (cOpts, options = {}) {
@@ -80,7 +86,7 @@ class TCP {
     }
 
     handler = handler || noop
-    return createListener(handler)
+    return createListener(handler, this.upgrader)
   }
 
   filter (multiaddrs) {

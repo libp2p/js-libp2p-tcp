@@ -10,6 +10,8 @@ class Libp2pSocket {
   constructor (rawSocket, ma, opts = {}) {
     this._rawSocket = rawSocket
     this._ma = ma
+    this.remoteAddr = ma
+    this.conn = rawSocket
 
     this.sink = this._sink(opts)
     this.source = opts.signal ? abortable(rawSocket, opts.signal) : rawSocket

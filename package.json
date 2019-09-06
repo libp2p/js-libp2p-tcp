@@ -47,7 +47,7 @@
     "debug": "^4.1.1",
     "err-code": "^1.1.2",
     "interface-connection": "~0.3.3",
-    "interface-transport": "~0.5.2",
+    "interface-transport": "~0.6.0",
     "ip-address": "^6.1.0",
     "it-pipe": "^1.0.1",
     "lodash.includes": "^4.3.0",
