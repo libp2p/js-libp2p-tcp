@@ -7,6 +7,7 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const TCP = require('../src')
 const multiaddr = require('multiaddr')
+const upgrader = require('./utils/upgrader')
 
 describe('filter addrs', () => {
   const base = '/ip4/127.0.0.1'
@@ -15,7 +16,7 @@ describe('filter addrs', () => {
   let tcp
 
   before(() => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
   })
 
   it('filter valid addrs for this transport', () => {

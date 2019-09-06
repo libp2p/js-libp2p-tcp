@@ -18,7 +18,7 @@ function noop () {}
 
 class TCP {
   constructor(options) {
-    assert(options.upgrader, 'An Upgrader must be provided')
+    assert(options && options.upgrader, 'An Upgrader must be provided')
     this.upgrader = options.upgrader
   }
 

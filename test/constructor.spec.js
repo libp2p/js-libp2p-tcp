@@ -6,10 +6,11 @@ const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
 const TCP = require('../src')
+const upgrader = require('./utils/upgrader')
 
 describe('Constructor', () => {
   it('create an instance', () => {
-    const tcp = new TCP()
+    const tcp = new TCP({ upgrader })
     expect(tcp).to.exist()
   })
 })

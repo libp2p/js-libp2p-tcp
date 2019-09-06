@@ -9,13 +9,14 @@ chai.use(dirtyChai)
 const TCP = require('../../src/adapter')
 const net = require('net')
 const multiaddr = require('multiaddr')
+const upgrader = require('../utils/upgrader')
 const isCI = process.env.CI
 
 describe('listen', () => {
   let tcp
 
   beforeEach(() => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
   })
 
   it('close listener with connections, through timeout', (done) => {
@@ -134,7 +135,7 @@ describe('dial', () => {
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')
 
   beforeEach((done) => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
     listener = tcp.createListener((conn) => {
       pull(
         conn,

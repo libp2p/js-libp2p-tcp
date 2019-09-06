@@ -9,6 +9,7 @@ chai.use(dirtyChai)
 const TCP = require('../../src/adapter')
 const multiaddr = require('multiaddr')
 const Connection = require('interface-connection').Connection
+const upgrader = require('../utils/upgrader')
 
 describe('Connection Wrap', () => {
   let tcp
@@ -16,7 +17,7 @@ describe('Connection Wrap', () => {
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')
 
   beforeEach((done) => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
     listener = tcp.createListener((conn) => {
       pull(conn, conn)
     })

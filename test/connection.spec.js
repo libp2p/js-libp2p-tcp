@@ -7,12 +7,13 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const TCP = require('../src')
 const multiaddr = require('multiaddr')
+const upgrader = require('./utils/upgrader')
 
 describe('valid Connection', () => {
   let tcp
 
   beforeEach(() => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
   })
 
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')

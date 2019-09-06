@@ -12,12 +12,13 @@ const multiaddr = require('multiaddr')
 const pipe = require('it-pipe')
 const { collect, map } = require('streaming-iterables')
 const isCI = process.env.CI
+const upgrader = require('./utils/upgrader')
 
 describe('listen', () => {
   let tcp
 
   beforeEach(() => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
   })
 
   it('close listener with connections, through timeout', async () => {
@@ -134,7 +135,7 @@ describe('dial', () => {
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')
 
   beforeEach(async () => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader })
     listener = tcp.createListener((conn) => {
       pipe(
         conn,
