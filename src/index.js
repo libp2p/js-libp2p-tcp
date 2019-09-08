@@ -16,7 +16,11 @@ class TCP {
 
   async dial (ma, options) {
     const socket = await this._connect(ma, options)
-    return this._upgrader.upgradeOutbound(toConnection(socket, options))
+    const maConn = toConnection(socket)
+    log('new outbound connection %s', maConn.remoteAddr)
+    const conn = await this._upgrader.upgradeOutbound(maConn)
+    log('outbound connection %s upgraded', maConn.remoteAddr)
+    return conn
   }
 
   _connect (ma, options = {}) {

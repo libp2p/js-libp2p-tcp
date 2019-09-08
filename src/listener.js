@@ -16,8 +16,10 @@ module.exports = ({ handler, upgrader }, options) => {
     socket.on('error', err => log('socket error', err))
 
     const maConn = toConnection(socket)
-    const conn = upgrader.upgradeInbound(maConn)
-    log('new connection %s', conn.remoteAddr)
+    log('new inbound connection %s', maConn.remoteAddr)
+
+    const conn = await upgrader.upgradeInbound(maConn)
+    log('inbound connection %s upgraded', maConn.remoteAddr)
 
     trackConn(server, maConn)
 
@@ -31,7 +33,7 @@ module.exports = ({ handler, upgrader }, options) => {
     .on('close', () => listener.emit('close'))
 
   // Keep track of open connections to destroy in case of timeout
-  server.__connections = {}
+  server.__connections = []
 
   listener.close = (options = {}) => {
     if (!server.listening) {
@@ -45,10 +47,13 @@ module.exports = ({ handler, upgrader }, options) => {
       // destroy all the underlying sockets manually.
       const timeout = setTimeout(() => {
         log('Timeout closing server after %dms, destroying connections manually', Date.now() - start)
-        Object.keys(server.__connections).forEach(key => {
-          log('destroying %s', key)
-          server.__connections[key].conn.destroy()
+        server.__connections.forEach(maConn => {
+          log('destroying %s', maConn.remoteAddr)
+          if (!maConn.conn.destroyed) {
+            maConn.conn.destroy()
+          }
         })
+        server.__connections = []
         resolve()
       }, options.timeout || CLOSE_TIMEOUT)
 
@@ -132,10 +137,13 @@ function getIpfsId (ma) {
 }
 
 function trackConn (server, maConn) {
-  const key = maConn.remoteAddr.toString()
-  server.__connections[key] = maConn
+  server.__connections.push(maConn)
 
-  maConn.conn.once('close', () => {
-    delete server.__connections[key]
-  })
+  const untrackConn = () => {
+    server.__connections = server.__connections.filter(c => c !== maConn)
+  }
+
+  maConn.conn
+    .on('close', untrackConn)
+    .on('error', untrackConn)
 }
