@@ -7,6 +7,21 @@ const Multiaddr = require('multiaddr')
 const { Address6 } = require('ip-address')
 const { CLOSE_TIMEOUT } = require('./constants')
 
+function toMultiaddr (ip, port) {
+  let proto = 'ip4'
+  const ip6 = new Address6(ip)
+
+  if (ip6.isValid) {
+    if (ip6.is4()) {
+      ip = ip6.to4().correctForm()
+    } else {
+      proto = 'ip6'
+    }
+  }
+
+  return Multiaddr(`/${proto}/${ip}/tcp/${port}`)
+}
+
 // Convert a socket into a MultiaddrConnection
 // https://github.com/libp2p/interface-transport#multiaddrconnection
 module.exports = function toConnection (socket, options) {
@@ -33,30 +48,10 @@ module.exports = function toConnection (socket, options) {
 
   conn.conn = socket
 
-  conn.localAddr = (() => {
-    const ip = socket.localAddress
-    const port = socket.localPort
-    return Multiaddr(`/ip4/${ip}/tcp/${port}`) // FIXME: ip6??
-  })()
+  conn.localAddr = toMultiaddr(socket.localAddress, socket.localPort)
+  conn.remoteAddr = toMultiaddr(socket.remoteAddress, socket.remotePort)
 
-  conn.remoteAddr = (() => {
-    let proto = 'ip4'
-    let ip = socket.remoteAddress
-
-    if (socket.remoteFamily === 'IPv6') {
-      const ip6 = new Address6(ip)
-
-      if (ip6.is4()) {
-        ip = ip6.to4().correctForm()
-      } else {
-        proto = 'ip6'
-      }
-    }
-
-    return Multiaddr(`/${proto}/${ip}/tcp/${socket.remotePort}`)
-  })()
-
-  conn.close = async options => {
+  conn.close = options => {
     options = options || {}
     if (socket.destroyed) return
 
