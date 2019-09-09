@@ -11,7 +11,7 @@ function toMultiaddr (ip, port) {
   let proto = 'ip4'
   const ip6 = new Address6(ip)
 
-  if (ip6.isValid) {
+  if (ip6.isValid()) {
     if (ip6.is4()) {
       ip = ip6.to4().correctForm()
     } else {
