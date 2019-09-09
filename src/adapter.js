@@ -6,8 +6,8 @@ const TCP = require('.')
 
 // Legacy adapter to old transport & connection interface
 class TcpAdapter extends Adapter {
-  constructor () {
-    super(new TCP())
+  constructor (config) {
+    super(new TCP(config))
   }
 }
 

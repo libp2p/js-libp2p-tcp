@@ -6,7 +6,8 @@ const net = require('net')
 const EventEmitter = require('events')
 const log = require('debug')('libp2p:tcp:listener')
 const toConnection = require('./socket-to-conn')
-const { IPFS_MA_CODE, CLOSE_TIMEOUT } = require('./constants')
+const { IPFS_MA_CODE } = require('./constants')
+const ProtoFamily = { ip4: 'IPv4', ip6: 'IPv6' }
 
 module.exports = ({ handler, upgrader }, options) => {
   const listener = new EventEmitter()
@@ -35,59 +36,36 @@ module.exports = ({ handler, upgrader }, options) => {
   // Keep track of open connections to destroy in case of timeout
   server.__connections = []
 
-  listener.close = (options = {}) => {
-    if (!server.listening) {
-      return
-    }
+  listener.close = () => {
+    if (!server.listening) return
 
     return new Promise((resolve, reject) => {
-      const start = Date.now()
-
-      // Attempt to stop the server. If it takes longer than the timeout,
-      // destroy all the underlying sockets manually.
-      const timeout = setTimeout(() => {
-        log('Timeout closing server after %dms, destroying connections manually', Date.now() - start)
-        server.__connections.forEach(maConn => {
-          log('destroying %s', maConn.remoteAddr)
-          if (!maConn.conn.destroyed) {
-            maConn.conn.destroy()
-          }
-        })
-        server.__connections = []
-        resolve()
-      }, options.timeout || CLOSE_TIMEOUT)
-
-      server
-        .once('close', () => clearTimeout(timeout))
-        .close(err => err ? reject(err) : resolve())
+      server.__connections.forEach(maConn => maConn.close())
+      server.close(err => err ? reject(err) : resolve())
     })
   }
 
-  let ipfsId
-  let listeningAddr
+  let ipfsId, listeningAddr
 
-  listener.listen = (ma) => {
+  listener.listen = ma => {
     listeningAddr = ma
     if (ma.protoNames().includes('ipfs')) {
       ipfsId = getIpfsId(ma)
       listeningAddr = ma.decapsulate('ipfs')
     }
 
-    const lOpts = listeningAddr.toOptions()
     return new Promise((resolve, reject) => {
-      server.listen(lOpts.port, lOpts.host, (err) => {
-        if (err) {
-          return reject(err)
-        }
-
-        log('Listening on %s %s', lOpts.port, lOpts.host)
+      const { host, port } = listeningAddr.toOptions()
+      server.listen(port, host, err => {
+        if (err) return reject(err)
+        log('Listening on %s %s', port, host)
         resolve()
       })
     })
   }
 
   listener.getAddrs = () => {
-    const multiaddrs = []
+    let addrs = []
     const address = server.address()
 
     if (!address) {
@@ -96,40 +74,31 @@ module.exports = ({ handler, upgrader }, options) => {
 
     // Because TCP will only return the IPv6 version
     // we need to capture from the passed multiaddr
-    if (listeningAddr.toString().indexOf('ip4') !== -1) {
-      let m = listeningAddr.decapsulate('tcp')
-      m = m.encapsulate('/tcp/' + address.port)
-      if (ipfsId) {
-        m = m.encapsulate('/ipfs/' + ipfsId)
-      }
-
-      if (m.toString().indexOf('0.0.0.0') !== -1) {
-        const netInterfaces = os.networkInterfaces()
-        Object.keys(netInterfaces).forEach((niKey) => {
-          netInterfaces[niKey].forEach((ni) => {
-            if (ni.family === 'IPv4') {
-              multiaddrs.push(multiaddr(m.toString().replace('0.0.0.0', ni.address)))
-            }
-          })
-        })
-      } else {
-        multiaddrs.push(m)
-      }
+    if (listeningAddr.toString().startsWith('/ip4')) {
+      addrs = addrs.concat(getMulitaddrs('ip4', address.address, address.port))
+    } else if (address.family === 'IPv6') {
+      addrs = addrs.concat(getMulitaddrs('ip6', address.address, address.port))
     }
 
-    if (address.family === 'IPv6') {
-      let ma = multiaddr('/ip6/' + address.address + '/tcp/' + address.port)
-      if (ipfsId) {
-        ma = ma.encapsulate('/ipfs/' + ipfsId)
-      }
-
-      multiaddrs.push(ma)
-    }
-
-    return multiaddrs
+    return addrs.map(ma => ipfsId ? ma.encapsulate(`/ipfs/${ipfsId}`) : ma)
   }
 
   return listener
+}
+
+function getMulitaddrs (proto, ip, port) {
+  const toMa = ip => multiaddr(`/${proto}/${ip}/tcp/${port}`)
+  return (isAnyAddr(ip) ? getNetworkAddrs(ProtoFamily[proto]) : [ip]).map(toMa)
+}
+
+function isAnyAddr (ip) {
+  return ['0.0.0.0', '::'].includes(ip)
+}
+
+function getNetworkAddrs (family) {
+  return [].concat(Object.values(os.networkInterfaces()))
+    .filter((netAddr) => netAddr.family === family)
+    .map(({ address }) => address)
 }
 
 function getIpfsId (ma) {
@@ -143,7 +112,5 @@ function trackConn (server, maConn) {
     server.__connections = server.__connections.filter(c => c !== maConn)
   }
 
-  maConn.conn
-    .on('close', untrackConn)
-    .on('error', untrackConn)
+  maConn.conn.on('close', untrackConn).on('error', untrackConn)
 }
