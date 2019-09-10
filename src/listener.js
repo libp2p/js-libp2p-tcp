@@ -95,10 +95,19 @@ function isAnyAddr (ip) {
   return ['0.0.0.0', '::'].includes(ip)
 }
 
+/**
+ * @private
+ * @param {string} family One of ['IPv6', 'IPv4']
+ * @returns {string[]} an array of ip address strings
+ */
 function getNetworkAddrs (family) {
-  return [].concat(Object.values(os.networkInterfaces()))
-    .filter((netAddr) => netAddr.family === family)
-    .map(({ address }) => address)
+  return Object.values(os.networkInterfaces()).reduce((addresses, netAddrs) => {
+    netAddrs.forEach(netAddr => {
+      // Add the ip of each matching network interface
+      if (netAddr.family === family) addresses.push(netAddr.address)
+    })
+    return addresses
+  }, [])
 }
 
 function getIpfsId (ma) {
