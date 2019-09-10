@@ -8,6 +8,7 @@ const log = require('debug')('libp2p:tcp')
 const toConnection = require('./socket-to-conn')
 const createListener = require('./listener')
 const { AbortError } = require('interface-transport')
+const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
 
 class TCP {
   constructor ({ upgrader }) {
@@ -88,17 +89,11 @@ class TCP {
     multiaddrs = Array.isArray(multiaddrs) ? multiaddrs : [multiaddrs]
 
     return multiaddrs.filter(ma => {
-      const protos = ma.protoNames()
-
-      if (protos.includes('p2p-circuit')) {
+      if (ma.protoCodes().includes(CODE_CIRCUIT)) {
         return false
       }
 
-      if (protos.includes('ipfs')) {
-        ma = ma.decapsulate('ipfs')
-      }
-
-      return mafmt.TCP.matches(ma)
+      return mafmt.TCP.matches(ma.decapsulateCode(CODE_P2P))
     })
   }
 }

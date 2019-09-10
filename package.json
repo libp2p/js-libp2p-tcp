@@ -44,14 +44,14 @@
     "sinon": "^7.3.1"
   },
   "dependencies": {
-    "abortable-iterator": "^2.0.0",
+    "abortable-iterator": "^2.1.0",
     "class-is": "^1.1.0",
     "debug": "^4.1.1",
     "err-code": "^2.0.0",
-    "interface-transport": "~0.5.0",
+    "interface-transport": "~0.6.0",
     "ip-address": "^6.1.0",
-    "mafmt": "^6.0.7",
-    "multiaddr": "^6.0.6",
+    "mafmt": "^6.0.9",
+    "multiaddr": "^7.1.0",
     "stream-to-it": "^0.1.1"
   },
   "contributors": [
