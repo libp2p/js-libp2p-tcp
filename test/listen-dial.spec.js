@@ -17,7 +17,12 @@ describe('listen', () => {
   let tcp
 
   beforeEach(() => {
-    tcp = new TCP()
+    tcp = new TCP({
+      upgrader: {
+        upgradeOutbound: maConn => maConn,
+        upgradeInbound: maConn => maConn
+      }
+    })
   })
 
   it('close listener with connections, through timeout', async () => {
@@ -134,7 +139,12 @@ describe('dial', () => {
   const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')
 
   beforeEach(async () => {
-    tcp = new TCP()
+    tcp = new TCP({
+      upgrader: {
+        upgradeOutbound: maConn => maConn,
+        upgradeInbound: maConn => maConn
+      }
+    })
     listener = tcp.createListener((conn) => {
       pipe(
         conn,

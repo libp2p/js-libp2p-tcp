@@ -11,24 +11,23 @@ const multiaddr = require('multiaddr')
 describe('valid Connection', () => {
   let tcp
 
+  const mockUpgrader = {
+    upgradeInbound: maConn => maConn,
+    upgradeOutbound: maConn => maConn
+  }
+
   beforeEach(() => {
-    tcp = new TCP()
+    tcp = new TCP({ upgrader: mockUpgrader })
   })
 
-  const ma = multiaddr('/ip4/127.0.0.1/tcp/9090')
+  const ma = multiaddr('/ip4/127.0.0.1/tcp/0')
 
-  it('get observed addrs', async () => {
+  it('should resolve port 0', async () => {
     // Create a Promise that resolves when a connection is handled
     let handled
-    const handlerPromise = new Promise((resolve) => {
-      handled = resolve
-    })
+    const handlerPromise = new Promise(resolve => { handled = resolve })
 
-    const handler = async (conn) => {
-      expect(conn).to.exist()
-      const dialerObsAddrs = await conn.getObservedAddrs()
-      handled(dialerObsAddrs)
-    }
+    const handler = conn => handled(conn)
 
     // Create a listener with the handler
     const listener = tcp.createListener(handler)
@@ -36,20 +35,22 @@ describe('valid Connection', () => {
     // Listen on the multi-address
     await listener.listen(ma)
 
-    // Dial to that same address
-    const conn = await tcp.dial(ma)
-    const addrs = await conn.getObservedAddrs()
+    const localAddrs = listener.getAddrs()
+    expect(localAddrs.length).to.equal(1)
+
+    // Dial to that address
+    const dialerConn = await tcp.dial(localAddrs[0])
 
     // Wait for the incoming dial to be handled
-    const dialerObsAddrs = await handlerPromise
+    const listenerConn = await handlerPromise
 
     // Close the listener
     await listener.close()
 
-    // The addresses should match
-    expect(addrs.length).to.equal(1)
-    expect(addrs[0]).to.deep.equal(ma)
-    expect(dialerObsAddrs.length).to.equal(1)
-    expect(dialerObsAddrs[0]).to.exist()
+    expect(dialerConn.localAddr.toString())
+      .to.equal(listenerConn.remoteAddr.toString())
+
+    expect(dialerConn.remoteAddr.toString())
+      .to.equal(listenerConn.localAddr.toString())
   })
 })

@@ -7,7 +7,7 @@ const errCode = require('err-code')
 const log = require('debug')('libp2p:tcp')
 const toConnection = require('./socket-to-conn')
 const createListener = require('./listener')
-const { AbortError } = require('interface-transport')
+const { AbortError } = require('abortable-iterator')
 const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
 
 class TCP {
@@ -16,8 +16,9 @@ class TCP {
   }
 
   async dial (ma, options) {
+    options = options || {}
     const socket = await this._connect(ma, options)
-    const maConn = toConnection(socket, { remoteAddr: ma })
+    const maConn = toConnection(socket, { remoteAddr: ma, signal: options.signal })
     log('new outbound connection %s', maConn.remoteAddr)
     const conn = await this._upgrader.upgradeOutbound(maConn)
     log('outbound connection %s upgraded', maConn.remoteAddr)
@@ -43,7 +44,7 @@ class TCP {
 
       const onTimeout = () => {
         log('connnection timeout %s:%s', cOpts.host, cOpts.port)
-        const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ETIMEDOUT')
+        const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ERR_CONNECT_TIMEOUT')
         // Note: this will result in onError() being called
         rawSocket.emit('error', err)
       }

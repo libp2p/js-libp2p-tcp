@@ -6,7 +6,7 @@ const net = require('net')
 const EventEmitter = require('events')
 const log = require('debug')('libp2p:tcp:listener')
 const toConnection = require('./socket-to-conn')
-const { IPFS_MA_CODE } = require('./constants')
+const { CODE_P2P } = require('./constants')
 const ProtoFamily = { ip4: 'IPv4', ip6: 'IPv6' }
 
 module.exports = ({ handler, upgrader }, options) => {
@@ -45,13 +45,14 @@ module.exports = ({ handler, upgrader }, options) => {
     })
   }
 
-  let ipfsId, listeningAddr
+  let peerId, listeningAddr
 
   listener.listen = ma => {
     listeningAddr = ma
-    if (ma.protoNames().includes('ipfs')) {
-      ipfsId = getIpfsId(ma)
-      listeningAddr = ma.decapsulate('ipfs')
+    peerId = ma.getPeerId()
+
+    if (peerId) {
+      listeningAddr = ma.decapsulateCode(CODE_P2P)
     }
 
     return new Promise((resolve, reject) => {
@@ -80,7 +81,7 @@ module.exports = ({ handler, upgrader }, options) => {
       addrs = addrs.concat(getMulitaddrs('ip6', address.address, address.port))
     }
 
-    return addrs.map(ma => ipfsId ? ma.encapsulate(`/ipfs/${ipfsId}`) : ma)
+    return addrs.map(ma => peerId ? ma.encapsulate(`/p2p/${peerId}`) : ma)
   }
 
   return listener
@@ -108,10 +109,6 @@ function getNetworkAddrs (family) {
     })
     return addresses
   }, [])
-}
-
-function getIpfsId (ma) {
-  return ma.stringTuples().filter(tuple => tuple[0] === IPFS_MA_CODE)[0][1]
 }
 
 function trackConn (server, maConn) {

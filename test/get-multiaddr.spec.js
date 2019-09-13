@@ -5,7 +5,7 @@ const chai = require('chai')
 const dirtyChai = require('dirty-chai')
 const expect = chai.expect
 chai.use(dirtyChai)
-const getMultiaddr = require('../src/get-multiaddr')
+// const getMultiaddr = require('../src/get-multiaddr')
 
 const goodSocket4 = {
   remoteAddress: '127.0.0.1',
