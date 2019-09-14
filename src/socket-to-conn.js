@@ -3,8 +3,7 @@
 const abortable = require('abortable-iterator')
 const log = require('debug')('libp2p:tcp:socket')
 const toIterable = require('stream-to-it')
-const Multiaddr = require('multiaddr')
-const { Address6 } = require('ip-address')
+const toMultiaddr = require('./ip-port-to-multiaddr')
 const { CLOSE_TIMEOUT } = require('./constants')
 
 // Convert a socket into a MultiaddrConnection
@@ -13,14 +12,7 @@ module.exports = (socket, options) => {
   options = options || {}
 
   const { sink, source } = toIterable.duplex(socket)
-  const localAddr = toMultiaddr(socket.localAddress, socket.localPort)
-
-  // If the remote address was passed, use it - it may have the peer ID encapsulated
-  const remoteAddr = options.remoteAddr
-    ? options.remoteAddr
-    : toMultiaddr(socket.remoteAddress, socket.remotePort)
-
-  return {
+  const maConn = {
     async sink (source) {
       if (options.signal) {
         source = abortable(source, options.signal)
@@ -45,9 +37,15 @@ module.exports = (socket, options) => {
     },
 
     source: options.signal ? abortable(source, options.signal) : source,
+
     conn: socket,
-    localAddr,
-    remoteAddr,
+
+    localAddr: toMultiaddr(socket.localAddress, socket.localPort),
+
+    // If the remote address was passed, use it - it may have the peer ID encapsulated
+    remoteAddr: options.remoteAddr || toMultiaddr(socket.remoteAddress, socket.remotePort),
+
+    timeline: { open: Date.now() },
 
     close () {
       if (socket.destroyed) return
@@ -58,7 +56,7 @@ module.exports = (socket, options) => {
         // Attempt to end the socket. If it takes longer to close than the
         // timeout, destroy it manually.
         const timeout = setTimeout(() => {
-          const { host, port } = remoteAddr.toOptions()
+          const { host, port } = maConn.remoteAddr.toOptions()
           log('timeout closing socket to %s:%s after %dms, destroying it manually',
             host, port, Date.now() - start)
 
@@ -72,23 +70,14 @@ module.exports = (socket, options) => {
         }, CLOSE_TIMEOUT)
 
         socket.once('close', () => clearTimeout(timeout))
-        socket.end(err => err ? reject(err) : resolve())
+        socket.end(err => {
+          maConn.timeline.close = Date.now()
+          if (err) return reject(err)
+          resolve()
+        })
       })
     }
   }
-}
 
-function toMultiaddr (ip, port) {
-  let proto = 'ip4'
-  const ip6 = new Address6(ip)
-
-  if (ip6.isValid()) {
-    if (ip6.is4()) {
-      ip = ip6.to4().correctForm()
-    } else {
-      proto = 'ip6'
-    }
-  }
-
-  return Multiaddr(`/${proto}/${ip}/tcp/${port}`)
+  return maConn
 }

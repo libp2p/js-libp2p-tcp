@@ -8,7 +8,7 @@ chai.use(dirtyChai)
 const TCP = require('../src')
 const multiaddr = require('multiaddr')
 
-describe('valid Connection', () => {
+describe('valid localAddr and remoteAddr', () => {
   let tcp
 
   const mockUpgrader = {
