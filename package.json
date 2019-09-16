@@ -14,8 +14,7 @@
     "coverage": "nyc --reporter=text --reporter=lcov npm run test:node"
   },
   "pre-push": [
-    "lint",
-    "test"
+    "lint"
   ],
   "repository": {
     "type": "git",
