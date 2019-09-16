@@ -118,5 +118,5 @@ function trackConn (server, maConn) {
     server.__connections = server.__connections.filter(c => c !== maConn)
   }
 
-  maConn.conn.on('close', untrackConn).on('error', untrackConn)
+  maConn.conn.once('close', untrackConn)
 }
