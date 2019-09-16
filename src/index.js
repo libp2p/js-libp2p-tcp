@@ -9,6 +9,7 @@ const toConnection = require('./socket-to-conn')
 const createListener = require('./listener')
 const { AbortError } = require('abortable-iterator')
 const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
+const assert = require('assert')
 
 /**
  * @class TCP
@@ -20,6 +21,7 @@ class TCP {
    * @param {Upgrader} options.upgrader
    */
   constructor ({ upgrader }) {
+    assert(upgrader, 'An upgrader must be provided. See https://github.com/libp2p/interface-transport#upgrader.')
     this._upgrader = upgrader
   }
 

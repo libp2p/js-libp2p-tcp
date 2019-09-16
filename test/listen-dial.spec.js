@@ -12,6 +12,12 @@ const pipe = require('it-pipe')
 const { collect, map } = require('streaming-iterables')
 const isCI = process.env.CI
 
+describe('construction', () => {
+  it('requires an upgrader', () => {
+    expect(() => new TCP()).to.throw()
+  })
+})
+
 describe('listen', () => {
   let tcp
 
