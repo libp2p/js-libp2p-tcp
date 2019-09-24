@@ -1,3 +1,13 @@
+<a name="0.13.2"></a>
+## [0.13.2](https://github.com/libp2p/js-libp2p-tcp/compare/v0.13.1...v0.13.2) (2019-09-24)
+
+
+### Bug Fixes
+
+* support multiaddr 7 ([#115](https://github.com/libp2p/js-libp2p-tcp/issues/115)) ([37cea53](https://github.com/libp2p/js-libp2p-tcp/commit/37cea53))
+
+
+
 <a name="0.13.1"></a>
 ## [0.13.1](https://github.com/libp2p/js-libp2p-tcp/compare/v0.13.0...v0.13.1) (2019-08-08)
 
