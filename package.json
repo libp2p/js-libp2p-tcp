@@ -39,7 +39,8 @@
     "chai": "^4.2.0",
     "dirty-chai": "^2.0.1",
     "interface-transport": "~0.3.6",
-    "pull-stream": "^3.6.14"
+    "pull-stream": "^3.6.14",
+    "multiaddr7": "npm:multiaddr@^7.0.0"
   },
   "dependencies": {
     "class-is": "^1.1.0",
