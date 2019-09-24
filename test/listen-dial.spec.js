@@ -127,6 +127,19 @@ describe('listen', () => {
       })
     })
   })
+
+  it('getAddrs preserves IPFS Id (multiaddr 7)', (done) => {
+    const mh = multiaddr7('/ip4/127.0.0.1/tcp/9090/p2p/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
+    const listener = tcp.createListener((conn) => {})
+    listener.listen(mh, () => {
+      listener.getAddrs((err, multiaddrs) => {
+        expect(err).to.not.exist()
+        expect(multiaddrs.length).to.equal(1)
+        expect(multiaddrs[0]).to.deep.equal(mh)
+        listener.close(done)
+      })
+    })
+  })
 })
 
 describe('dial', () => {
