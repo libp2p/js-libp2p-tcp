@@ -73,7 +73,9 @@ class TCP {
         return false
       }
 
-      if (includes(ma.protoNames(), 'ipfs')) {
+      if (typeof ma.decapsulateCode === 'function') {
+        ma = ma.decapsulateCode(421) // multiaddr 7
+      } else if (includes(ma.protoNames(), 'ipfs')) {
         ma = ma.decapsulate('ipfs')
       }
 

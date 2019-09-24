@@ -84,7 +84,10 @@ module.exports = (handler) => {
 
   listener.listen = (ma, callback) => {
     listeningAddr = ma
-    if (includes(ma.protoNames(), 'ipfs')) {
+    if (typeof ma.decapsulateCode === 'function') {
+      ipfsId = getIpfsId(ma)
+      listeningAddr = ma.decapsulateCode(IPFS_CODE)
+    } else if (includes(ma.protoNames(), 'ipfs')) {
       ipfsId = getIpfsId(ma)
       listeningAddr = ma.decapsulate('ipfs')
     }
