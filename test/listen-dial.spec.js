@@ -9,6 +9,7 @@ chai.use(dirtyChai)
 const TCP = require('../src')
 const net = require('net')
 const multiaddr = require('multiaddr')
+const multiaddr7 = require('multiaddr7')
 const isCI = process.env.CI
 
 describe('listen', () => {
@@ -244,6 +245,21 @@ describe('dial', () => {
 
   it('dial on IPv4 with IPFS Id', (done) => {
     const ma = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
+    const conn = tcp.dial(ma)
+
+    pull(
+      pull.values(['hey']),
+      conn,
+      pull.collect((err, res) => {
+        expect(err).to.not.exist()
+        expect(res).to.be.eql([Buffer.from('hey!')])
+        done()
+      })
+    )
+  })
+
+  it('dial on IPv4 with IPFS Id multiaddr7', (done) => {
+    const ma = multiaddr7('/ip4/127.0.0.1/tcp/9090/p2p/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
     const conn = tcp.dial(ma)
 
     pull(
