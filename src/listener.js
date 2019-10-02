@@ -59,8 +59,7 @@ module.exports = ({ handler, upgrader }, options) => {
       const { host, port } = listeningAddr.toOptions()
       server.listen(port, host, err => {
         if (err) return reject(err)
-        const { address, port } = server.address()
-        log('Listening on %s:%s', address, port)
+        log('Listening on %s', server.address())
         resolve()
       })
     })
