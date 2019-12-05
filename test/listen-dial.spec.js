@@ -61,11 +61,10 @@ describe('listen', () => {
     })
   })
 
-  it('listen on path', async () => {
+  it('listen on path', async function () {
     // Windows doesn't support unix paths
-    const mh = isWindows
-      ? multiaddr('/ip4/0.0.0.0/tcp/8080')
-      : multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
+    if (isWindows) return this.skip()
+    const mh = multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
 
     listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
@@ -198,9 +197,8 @@ describe('dial', () => {
 
   it('dial on path', async () => {
     // Windows doesn't support unix paths
-    const ma = isWindows
-      ? multiaddr('/ip4/0.0.0.0/tcp/8080')
-      : multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
+    if (isWindows) return this.skip()
+    const ma = multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
 
     const listener = tcp.createListener((conn) => {
       pipe(conn, conn)
