@@ -6,8 +6,8 @@ const log = require('debug')('libp2p:tcp:listener')
 const toConnection = require('./socket-to-conn')
 const { CODE_P2P } = require('./constants')
 const {
- getMultiaddrs,
- multiaddrToNetConfig
+  getMultiaddrs,
+  multiaddrToNetConfig
 } = require('./utils')
 
 module.exports = ({ handler, upgrader }, options) => {

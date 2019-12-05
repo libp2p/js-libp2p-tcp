@@ -37,7 +37,9 @@
     "chai": "^4.2.0",
     "dirty-chai": "^2.0.1",
     "interface-transport": "^0.7.0",
-    "sinon": "^7.3.1"
+    "it-pipe": "^1.1.0",
+    "sinon": "^7.3.1",
+    "streaming-iterables": "^4.1.1"
   },
   "dependencies": {
     "abortable-iterator": "^2.1.0",
