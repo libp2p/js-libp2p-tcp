@@ -15,6 +15,8 @@ const { collect, map } = require('streaming-iterables')
 const isCI = process.env.CI
 const isWindows = os.platform() === 'win32'
 
+const skipOnWindows = isWindows ? it.skip : it
+
 describe('construction', () => {
   it('requires an upgrader', () => {
     expect(() => new TCP()).to.throw()
@@ -61,9 +63,8 @@ describe('listen', () => {
     })
   })
 
-  it('listen on path', async function () {
-    // Windows doesn't support unix paths
-    if (isWindows) return this.skip()
+  // Windows doesn't support unix paths
+  skipOnWindows('listen on path', async () => {
     const mh = multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
 
     listener = tcp.createListener((conn) => {})
@@ -195,9 +196,8 @@ describe('dial', () => {
     await listener.close()
   })
 
-  it('dial on path', async function () {
-    // Windows doesn't support unix paths
-    if (isWindows) return this.skip()
+  // Windows doesn't support unix paths
+  skipOnWindows('dial on path', async () => {
     const ma = multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
 
     const listener = tcp.createListener((conn) => {
