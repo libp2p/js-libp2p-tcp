@@ -195,7 +195,7 @@ describe('dial', () => {
     await listener.close()
   })
 
-  it('dial on path', async () => {
+  it('dial on path', async function () {
     // Windows doesn't support unix paths
     if (isWindows) return this.skip()
     const ma = multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
