@@ -7,10 +7,13 @@ const expect = chai.expect
 chai.use(dirtyChai)
 const TCP = require('../src')
 const net = require('net')
+const os = require('os')
+const path = require('path')
 const multiaddr = require('multiaddr')
 const pipe = require('it-pipe')
 const { collect, map } = require('streaming-iterables')
 const isCI = process.env.CI
+const isWindows = os.platform() === 'win32'
 
 describe('construction', () => {
   it('requires an upgrader', () => {
@@ -20,6 +23,7 @@ describe('construction', () => {
 
 describe('listen', () => {
   let tcp
+  let listener
 
   beforeEach(() => {
     tcp = new TCP({
@@ -29,10 +33,13 @@ describe('listen', () => {
       }
     })
   })
+  afterEach(async () => {
+    listener && await listener.close()
+  })
 
   it('close listener with connections, through timeout', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
-    const listener = tcp.createListener((conn) => {
+    listener = tcp.createListener((conn) => {
       pipe(conn, conn)
     })
 
@@ -54,11 +61,20 @@ describe('listen', () => {
     })
   })
 
+  it('listen on path', async () => {
+    // Windows doesn't support unix paths
+    const mh = isWindows
+      ? multiaddr('/ip4/0.0.0.0/tcp/8080')
+      : multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
+
+    listener = tcp.createListener((conn) => {})
+    await listener.listen(mh)
+  })
+
   it('listen on port 0', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/0')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
-    await listener.close()
   })
 
   it('listen on IPv6 addr', async () => {
@@ -66,75 +82,63 @@ describe('listen', () => {
       return
     }
     const mh = multiaddr('/ip6/::/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
-    await listener.close()
   })
 
   it('listen on any Interface', async () => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
-    await listener.close()
   })
 
   it('getAddrs', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length).to.equal(1)
     expect(multiaddrs[0]).to.deep.equal(mh)
-
-    await listener.close()
   })
 
   it('getAddrs on port 0 listen', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/0')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length).to.equal(1)
-
-    await listener.close()
   })
 
   it('getAddrs from listening on 0.0.0.0', async () => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/9090')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length > 0).to.equal(true)
     expect(multiaddrs[0].toString().indexOf('0.0.0.0')).to.equal(-1)
-
-    await listener.close()
   })
 
   it('getAddrs from listening on 0.0.0.0 and port 0', async () => {
     const mh = multiaddr('/ip4/0.0.0.0/tcp/0')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length > 0).to.equal(true)
     expect(multiaddrs[0].toString().indexOf('0.0.0.0')).to.equal(-1)
-
-    await listener.close()
   })
 
   it('getAddrs preserves IPFS Id', async () => {
     const mh = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
-    const listener = tcp.createListener((conn) => {})
+    listener = tcp.createListener((conn) => {})
     await listener.listen(mh)
 
     const multiaddrs = listener.getAddrs()
     expect(multiaddrs.length).to.equal(1)
     expect(multiaddrs[0]).to.deep.equal(mh)
-
-    await listener.close()
   })
 })
 
@@ -189,6 +193,29 @@ describe('dial', () => {
     )
     expect(values).to.be.eql([Buffer.from('hey')])
 
+    await listener.close()
+  })
+
+  it('dial on path', async () => {
+    // Windows doesn't support unix paths
+    const ma = isWindows
+      ? multiaddr('/ip4/0.0.0.0/tcp/8080')
+      : multiaddr(`/unix${path.resolve(os.tmpdir(), '/tmp/p2pd.sock')}`)
+
+    const listener = tcp.createListener((conn) => {
+      pipe(conn, conn)
+    })
+    await listener.listen(ma)
+
+    const connection = await tcp.dial(ma)
+
+    const values = await pipe(
+      ['hey'],
+      connection,
+      collect
+    )
+
+    expect(values).to.be.eql([Buffer.from('hey')])
     await listener.close()
   })
 
