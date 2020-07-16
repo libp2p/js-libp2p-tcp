@@ -49,7 +49,7 @@
     "libp2p-utils": "^0.1.2",
     "mafmt": "^7.1.0",
     "multiaddr": "^7.5.0",
-    "stream-to-it": "^0.2.1"
+    "stream-to-it": "^0.2.2"
   },
   "contributors": [
     "David Dias <daviddias.p@gmail.com>",
