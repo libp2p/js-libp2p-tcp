@@ -56,6 +56,8 @@ module.exports = (socket, options) => {
 
     timeline: { open: Date.now() },
 
+    transportTag: 'TCP',
+
     close () {
       if (socket.destroyed) return
 
