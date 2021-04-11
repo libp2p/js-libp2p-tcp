@@ -50,7 +50,7 @@
     "debug": "^4.3.1",
     "err-code": "^3.0.1",
     "libp2p-utils": "^0.3.0",
-    "mafmt": "^8.0.4",
+    "mafmt": "^9.0.0",
     "multiaddr": "^9.0.1",
     "stream-to-it": "^0.2.2"
   },
