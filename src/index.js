@@ -16,9 +16,6 @@ const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
  * @typedef {import('libp2p-interfaces/src/connection').Connection} Connection
  */
 
-/**
- * @class TCP
- */
 class TCP {
   /**
    * @class
