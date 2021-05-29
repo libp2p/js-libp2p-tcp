@@ -11,11 +11,6 @@ const { multiaddrToNetConfig } = require('./utils')
 const { AbortError } = require('abortable-iterator')
 const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
 
-/**
- * @typedef {import('multiaddr').Multiaddr} Multiaddr
- * @typedef {import('libp2p-interfaces/src/connection').Connection} Connection
- */
-
 class TCP {
   /**
    * @class
@@ -33,8 +28,8 @@ class TCP {
    * @async
    * @param {Multiaddr} ma
    * @param {object} options
-   * @param {AbortSignal} options.signal - Used to abort dial requests
-   * @returns {Connection} An upgraded Connection
+   * @param {AbortSignal} [options.signal] - Used to abort dial requests
+   * @returns {Promise<Connection>} An upgraded Connection
    */
   async dial (ma, options) {
     options = options || {}
@@ -50,7 +45,7 @@ class TCP {
    * @private
    * @param {Multiaddr} ma
    * @param {object} options
-   * @param {AbortSignal} options.signal - Used to abort dial requests
+   * @param {AbortSignal} [options.signal] - Used to abort dial requests
    * @returns {Promise<Socket>} Resolves a TCP Socket
    */
   _connect (ma, options = {}) {
@@ -65,13 +60,13 @@ class TCP {
       log('dialing %j', cOpts)
       const rawSocket = net.connect(cOpts)
 
-      const onError = err => {
+      const onError = /** @param {Error} err */ err => {
         err.message = `connection error ${cOpts.host}:${cOpts.port}: ${err.message}`
         done(err)
       }
 
       const onTimeout = () => {
-        log('connnection timeout %s:%s', cOpts.host, cOpts.port)
+        log('connection timeout %s:%s', cOpts.host, cOpts.port)
         const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ERR_CONNECT_TIMEOUT')
         // Note: this will result in onError() being called
         rawSocket.emit('error', err)
@@ -88,7 +83,7 @@ class TCP {
         done(new AbortError())
       }
 
-      const done = err => {
+      const done = /** @param {Error} [err] */ err => {
         rawSocket.removeListener('error', onError)
         rawSocket.removeListener('timeout', onTimeout)
         rawSocket.removeListener('connect', onConnect)
@@ -110,17 +105,21 @@ class TCP {
    * anytime a new incoming Connection has been successfully upgraded via
    * `upgrader.upgradeInbound`.
    *
-   * @param {*} [options]
-   * @param {function(Connection)} handler
+   * @param {* | function(Connection):void} options
+   * @param {function(Connection):void} [handler]
    * @returns {Listener} A TCP listener
    */
   createListener (options, handler) {
+    let listenerHandler
+
     if (typeof options === 'function') {
-      handler = options
+      listenerHandler = options
       options = {}
+    } else {
+      listenerHandler = handler
     }
     options = options || {}
-    return createListener({ handler, upgrader: this._upgrader }, options)
+    return createListener({ handler: listenerHandler, upgrader: this._upgrader }, options)
   }
 
   /**
