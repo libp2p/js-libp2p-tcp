@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "lint": "aegir lint",
-    "build": "aegir build --node",
+    "build": "aegir build",
     "test": "aegir test -t node",
     "test:node": "aegir test -t node",
     "release": "aegir release -t node",
@@ -41,7 +41,7 @@
   "types": "dist/src/index.d.ts",
   "devDependencies": {
     "@types/debug": "^4.1.5",
-    "aegir": "^30.3.0",
+    "aegir": "^33.2.0",
     "it-pipe": "^1.1.0",
     "libp2p-interfaces": "^0.11.0",
     "sinon": "^10.0.1",
