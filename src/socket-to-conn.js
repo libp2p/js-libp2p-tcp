@@ -2,6 +2,8 @@
 
 const abortable = require('abortable-iterator')
 const log = require('debug')('libp2p:tcp:socket')
+// Missing Type
+// @ts-ignore
 const toIterable = require('stream-to-it')
 const toMultiaddr = require('libp2p-utils/src/ip-port-to-multiaddr')
 const { CLOSE_TIMEOUT } = require('./constants')
@@ -37,6 +39,8 @@ const toConnection = (socket, options) => {
   const maConn = {
     async sink (source) {
       if (options.signal) {
+        // Missing Type for "abortable"
+        // @ts-ignore
         source = abortable(source, options.signal)
       }
 
@@ -60,6 +64,8 @@ const toConnection = (socket, options) => {
       }
     },
 
+    // Missing Type for "abortable"
+    // @ts-ignore
     source: options.signal ? abortable(source, options.signal) : source,
 
     conn: socket,

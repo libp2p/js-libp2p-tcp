@@ -2,6 +2,8 @@
 
 const net = require('net')
 const mafmt = require('mafmt')
+// Missing Type
+// @ts-ignore
 const withIs = require('class-is')
 const errCode = require('err-code')
 const log = require('debug')('libp2p:tcp')
