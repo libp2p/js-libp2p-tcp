@@ -13,6 +13,14 @@ const { multiaddrToNetConfig } = require('./utils')
 const { AbortError } = require('abortable-iterator')
 const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
 
+/**
+ * @typedef {import('multiaddr').Multiaddr} Multiaddr
+ * @typedef {import('libp2p-interfaces/src/connection').Connection} Connection
+ * @typedef {import('libp2p-interfaces/src/transport/types').Upgrader} Upgrader
+ * @typedef {import('libp2p-interfaces/src/transport/types').Listener} Listener
+ * @typedef {import('net').Socket} Socket
+ */
+
 class TCP {
   /**
    * @class

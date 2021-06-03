@@ -9,6 +9,12 @@ const toMultiaddr = require('libp2p-utils/src/ip-port-to-multiaddr')
 const { CLOSE_TIMEOUT } = require('./constants')
 
 /**
+ * @typedef {import('multiaddr').Multiaddr} Multiaddr
+ * @typedef {import('libp2p-interfaces/src/transport/types').MultiaddrConnection} MultiaddrConnection
+ * @typedef {import('net').Socket} Socket
+ */
+
+/**
  * Convert a socket into a MultiaddrConnection
  * https://github.com/libp2p/interface-transport#multiaddrconnection
  *

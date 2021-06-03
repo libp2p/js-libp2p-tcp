@@ -6,6 +6,10 @@ const { resolve } = require('path')
 const ProtoFamily = { ip4: 'IPv4', ip6: 'IPv6' }
 
 /**
+ * @typedef {import('multiaddr').MultiaddrObject} MultiaddrObject
+ */
+
+/**
  * @param {Multiaddr} addr
  * @returns {MultiaddrObject}
  */

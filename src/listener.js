@@ -14,6 +14,15 @@ const {
 } = require('./utils')
 
 /**
+ * @typedef {import('multiaddr').Multiaddr} Multiaddr
+ * @typedef {import('libp2p-interfaces/src/connection').Connection} Connection
+ * @typedef {import('libp2p-interfaces/src/transport/types').Upgrader} Upgrader
+ * @typedef {import('libp2p-interfaces/src/transport/types').MultiaddrConnection} MultiaddrConnection
+ * @typedef {import('libp2p-interfaces/src/transport/types').Listener} Listener
+ * @typedef {import('net').Server & {__connections: MultiaddrConnection[]}} Server
+ */
+
+/**
  * Attempts to close the given maConn. If a failure occurs, it will be logged.
  *
  * @private
