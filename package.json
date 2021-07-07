@@ -5,7 +5,7 @@
   "leadMaintainer": "Jacob Heun <jacobheun@gmail.com>",
   "main": "src/index.js",
   "scripts": {
-    "lint": "aegir lint",
+    "lint": "aegir ts -p check && aegir lint",
     "build": "aegir build",
     "test": "aegir test -t node",
     "test:node": "aegir test -t node",
@@ -53,7 +53,7 @@
     "debug": "^4.3.1",
     "err-code": "^3.0.1",
     "libp2p-utils": "^0.4.0",
-    "mafmt": "^9.0.0",
+    "mafmt": "^10.0.0",
     "multiaddr": "^10.0.0",
     "stream-to-it": "^0.2.2"
   },
