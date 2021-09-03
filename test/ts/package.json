@@ -1,0 +1,13 @@
+{
+  "name": "ts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --esModuleInterop index.ts"
+  },
+  "dependencies": {
+    "libp2p-tcp": "file:../../",
+    "typescript": "^4.4.2"
+  }
+}
