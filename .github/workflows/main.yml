@@ -11,11 +11,11 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - run: npm install
-    - run: npm run lint
-    - run: npx aegir dep-check
-    - run: npm run build
+      - uses: actions/checkout@v2
+      - run: npm install
+      - run: npm run lint
+      - run: npx aegir dep-check
+      - run: npm run build
   test-node:
     needs: check
     runs-on: ${{ matrix.os }}
@@ -31,4 +31,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm install
       - run: npx nyc --reporter=lcov aegir test -t node -- --bail
+      - name: Install & build in TS project
+        run: yarn && yarn build
+        working-directory: test/ts
       - uses: codecov/codecov-action@v1
