@@ -15,18 +15,18 @@
 
 > JavaScript implementation of the TCP module for libp2p. It exposes the [interface-transport](https://github.com/libp2p/js-libp2p-interfaces/tree/master/src/transport) for dial/listen. `libp2p-tcp` is a very thin shim that adds support for dialing to a `multiaddr`. This small shim will enable libp2p to use other transports.
 
-## Lead Maintainer
-
-[Jacob Heun](https://github.com/jacobheun)
-
 ## Table of Contents
 
-- [Install](#install)
-  - [npm](#npm)
-- [Usage](#usage)
-- [API](#api)
-- [Contribute](#contribute)
-- [License](#license)
+- [js-libp2p-tcp](#js-libp2p-tcp)
+  - [Table of Contents](#table-of-contents)
+  - [Install](#install)
+    - [npm](#npm)
+  - [Usage](#usage)
+  - [API](#api)
+    - [Transport](#transport)
+    - [Connection](#connection)
+  - [Contribute](#contribute)
+  - [License](#license)
 
 ## Install
 
@@ -52,7 +52,7 @@ const upgrader = {
 
 const tcp = new TCP({ upgrader })
 
-const listener = tcp.createListener((socket) => {
+const listener = tcp.createListener({}, (socket) => {
   console.log('new connection opened')
   pipe(
     ['hello'],

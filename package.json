@@ -2,21 +2,24 @@
   "name": "libp2p-tcp",
   "version": "0.17.2",
   "description": "Node.js implementation of the TCP module that libp2p uses, which implements the interface-connection and interface-transport interfaces",
-  "leadMaintainer": "Jacob Heun <jacobheun@gmail.com>",
-  "main": "src/index.js",
+  "main": "./dist/src/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/src/index.js"
+    }
+  },
   "scripts": {
     "lint": "aegir ts -p check && aegir lint",
-    "build": "aegir build",
-    "test": "aegir test -t node",
-    "test:node": "aegir test -t node",
-    "release": "aegir release -t node",
-    "release-minor": "aegir release -t node --type minor",
-    "release-major": "aegir-release -t node --type major",
+    "build": "tsc",
+    "pretest": "npm run build",
+    "test": "aegir test -t node -f ./dist/test/*.js",
+    "test:node": "aegir test -t node -f ./dist/test/*.js",
+    "release": "aegir release -t node -f ./dist/test/*.js",
+    "release-minor": "aegir release -t node -f ./dist/test/*.js --type minor",
+    "release-major": "aegir-release -t node -f ./dist/test/*.js --type major",
     "coverage": "nyc --reporter=text --reporter=lcov npm run test:node"
   },
-  "pre-push": [
-    "lint"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/libp2p/js-libp2p-tcp.git"
@@ -41,11 +44,12 @@
   "types": "dist/src/index.d.ts",
   "devDependencies": {
     "@types/debug": "^4.1.5",
-    "aegir": "^35.0.3",
+    "@types/mocha": "^9.0.0",
+    "aegir": "^36.0.0",
     "it-pipe": "^1.1.0",
-    "libp2p-interfaces": "^1.0.0",
-    "libp2p-interfaces-compliance-tests": "^1.0.0",
-    "sinon": "^11.1.1",
+    "libp2p-interfaces": "^2.0.0",
+    "libp2p-interfaces-compliance-tests": "^2.0.0",
+    "sinon": "^12.0.0",
     "streaming-iterables": "^6.0.0"
   },
   "dependencies": {
@@ -56,7 +60,8 @@
     "libp2p-utils": "^0.4.0",
     "mafmt": "^10.0.0",
     "multiaddr": "^10.0.0",
-    "stream-to-it": "^0.2.2"
+    "stream-to-it": "^0.2.2",
+    "why-is-node-running": "^2.2.0"
   },
   "contributors": [
     "David Dias <daviddias.p@gmail.com>",
