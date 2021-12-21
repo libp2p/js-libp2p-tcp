@@ -59,7 +59,7 @@ const toConnection = (socket, options) => {
             yield Buffer.isBuffer(chunk) ? chunk : chunk.slice()
           }
         })())
-      } catch (err) {
+      } catch (/** @type {any} */ err) {
         // If aborted we can safely ignore
         if (err.type !== 'aborted') {
           // If the source errored the socket will already have been destroyed by
@@ -76,6 +76,7 @@ const toConnection = (socket, options) => {
 
     conn: socket,
 
+    // @ts-expect-error toMultiaddr guards the address and port args
     localAddr: options.localAddr || toMultiaddr(socket.localAddress, socket.localPort),
 
     // If the remote address was passed, use it - it may have the peer ID encapsulated

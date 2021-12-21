@@ -115,7 +115,7 @@ module.exports = ({ handler, upgrader }, options) => {
     try {
       maConn = toConnection(socket, { listeningAddr })
       log('new inbound connection %s', maConn.remoteAddr)
-      conn = await upgrader.upgradeInbound(maConn)
+      conn = await upgrader.upgradeInbound(maConn, options)
     } catch (err) {
       log.error('inbound connection failed', err)
       // @ts-ignore

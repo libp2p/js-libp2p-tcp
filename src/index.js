@@ -19,6 +19,7 @@ const { CODE_CIRCUIT, CODE_P2P } = require('./constants')
  * @typedef {import('libp2p-interfaces/src/transport/types').Upgrader} Upgrader
  * @typedef {import('libp2p-interfaces/src/transport/types').Listener} Listener
  * @typedef {import('net').Socket} Socket
+ * @typedef {import('libp2p-interfaces/src/types').AbortOptions} AbortOptions
  */
 
 class TCP {
@@ -37,8 +38,7 @@ class TCP {
   /**
    * @async
    * @param {Multiaddr} ma
-   * @param {object} options
-   * @param {AbortSignal} [options.signal] - Used to abort dial requests
+   * @param {AbortOptions} options
    * @returns {Promise<Connection>} An upgraded Connection
    */
   async dial (ma, options) {
@@ -46,7 +46,7 @@ class TCP {
     const socket = await this._connect(ma, options)
     const maConn = toConnection(socket, { remoteAddr: ma, signal: options.signal })
     log('new outbound connection %s', maConn.remoteAddr)
-    const conn = await this._upgrader.upgradeOutbound(maConn)
+    const conn = await this._upgrader.upgradeOutbound(maConn, options)
     log('outbound connection %s upgraded', maConn.remoteAddr)
     return conn
   }
@@ -54,8 +54,7 @@ class TCP {
   /**
    * @private
    * @param {Multiaddr} ma
-   * @param {object} options
-   * @param {AbortSignal} [options.signal] - Used to abort dial requests
+   * @param {AbortOptions} options
    * @returns {Promise<Socket>} Resolves a TCP Socket
    */
   _connect (ma, options = {}) {
