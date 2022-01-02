@@ -47,21 +47,20 @@
     "@types/mocha": "^9.0.0",
     "aegir": "^36.0.0",
     "it-pipe": "^1.1.0",
-    "libp2p-interfaces": "^2.0.0",
-    "libp2p-interfaces-compliance-tests": "^2.0.0",
+    "libp2p-interfaces": "^3.1.1",
+    "libp2p-interfaces-compliance-tests": "^3.1.1",
     "sinon": "^12.0.0",
     "streaming-iterables": "^6.0.0"
   },
   "dependencies": {
-    "abortable-iterator": "^3.0.0",
+    "abortable-iterator": "^3.0.1",
     "class-is": "^1.1.0",
     "debug": "^4.3.1",
     "err-code": "^3.0.1",
     "libp2p-utils": "^0.4.0",
     "mafmt": "^10.0.0",
     "multiaddr": "^10.0.0",
-    "stream-to-it": "^0.2.2",
-    "why-is-node-running": "^2.2.0"
+    "stream-to-it": "^0.2.2"
   },
   "contributors": [
     "David Dias <daviddias.p@gmail.com>",
