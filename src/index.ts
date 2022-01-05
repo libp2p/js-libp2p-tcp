@@ -1,5 +1,5 @@
 import net from 'net'
-import mafmt from 'mafmt'
+import * as mafmt from '@multiformats/mafmt'
 import errCode from 'err-code'
 import debug from 'debug'
 import { toConnection } from './socket-to-conn.js'
@@ -7,9 +7,9 @@ import { createListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
 import { AbortError } from 'abortable-iterator'
 import { CODE_CIRCUIT, CODE_P2P } from './constants.js'
-import type { Transport, Upgrader } from 'libp2p-interfaces/transport'
-import type { Connection } from 'libp2p-interfaces/connection'
-import type { Multiaddr } from 'multiaddr'
+import type { Transport, Upgrader } from '@libp2p/interfaces/transport'
+import type { Connection } from '@libp2p/interfaces/connection'
+import type { Multiaddr } from '@multiformats/multiaddr'
 import type { Socket } from 'net'
 
 const log = debug('libp2p:tcp')
@@ -45,6 +45,12 @@ export default class TCP implements Transport<DialOptions, {}> {
 
   async dial (ma: Multiaddr, options: DialOptions = {}) {
     const socket = await this._connect(ma, options)
+
+    // Avoid uncaught errors caused by unstable connections
+    socket.on('error', err => {
+      log('socket error', err)
+    })
+
     const maConn = toConnection(socket, { remoteAddr: ma, signal: options.signal })
     log('new outbound connection %s', maConn.remoteAddr)
     const conn = await this._upgrader.upgradeOutbound(maConn)

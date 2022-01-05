@@ -1,6 +1,6 @@
 {
-  "name": "libp2p-tcp",
-  "version": "0.17.2",
+  "name": "@libp2p/transport-tcp",
+  "version": "0.0.1",
   "description": "Node.js implementation of the TCP module that libp2p uses, which implements the interface-connection and interface-transport interfaces",
   "main": "./dist/src/index.js",
   "type": "module",
@@ -10,15 +10,14 @@
     }
   },
   "scripts": {
-    "lint": "aegir ts -p check && aegir lint",
+    "lint": "aegir lint",
+    "dep-check": "aegir dep-check dist/src/**/*.js dist/test/**/*.js",
     "build": "tsc",
     "pretest": "npm run build",
-    "test": "aegir test -t node -f ./dist/test/*.js",
-    "test:node": "aegir test -t node -f ./dist/test/*.js",
-    "release": "aegir release -t node -f ./dist/test/*.js",
-    "release-minor": "aegir release -t node -f ./dist/test/*.js --type minor",
-    "release-major": "aegir-release -t node -f ./dist/test/*.js --type major",
-    "coverage": "nyc --reporter=text --reporter=lcov npm run test:node"
+    "test": "aegir test -f ./dist/test/**/*.js",
+    "test:node": "npm run test -- -t node --cov",
+    "test:electron-main": "npm run test -- -t electron-main",
+    "release": "semantic-release"
   },
   "repository": {
     "type": "git",
@@ -43,23 +42,23 @@
   },
   "types": "dist/src/index.d.ts",
   "devDependencies": {
+    "@libp2p/interface-compliance-tests": "^0.2.0",
+    "@libp2p/interfaces": "^0.2.0",
     "@types/debug": "^4.1.5",
     "@types/mocha": "^9.0.0",
-    "aegir": "^36.0.0",
+    "aegir": "^36.1.2",
     "it-pipe": "^1.1.0",
-    "libp2p-interfaces": "^3.1.1",
-    "libp2p-interfaces-compliance-tests": "^3.1.1",
     "sinon": "^12.0.0",
     "streaming-iterables": "^6.0.0"
   },
   "dependencies": {
+    "@libp2p/utils": "^1.0.0",
+    "@multiformats/mafmt": "^11.0.0",
+    "@multiformats/multiaddr": "^10.1.1",
     "abortable-iterator": "^3.0.1",
     "class-is": "^1.1.0",
     "debug": "^4.3.1",
     "err-code": "^3.0.1",
-    "libp2p-utils": "^0.4.0",
-    "mafmt": "^10.0.0",
-    "multiaddr": "^10.0.0",
     "stream-to-it": "^0.2.2"
   },
   "contributors": [

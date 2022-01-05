@@ -2,10 +2,10 @@ import { expect } from 'aegir/utils/chai.js'
 import TCP from '../src/index.js'
 import os from 'os'
 import path from 'path'
-import { Multiaddr } from 'multiaddr'
+import { Multiaddr } from '@multiformats/multiaddr'
 import pipe from 'it-pipe'
 import { collect } from 'streaming-iterables'
-import { mockUpgrader } from 'libp2p-interfaces-compliance-tests/transport/utils'
+import { mockUpgrader } from '@libp2p/interface-compliance-tests/transport/utils'
 
 const isCI = process.env.CI
 

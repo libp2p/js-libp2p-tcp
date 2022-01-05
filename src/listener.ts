@@ -7,10 +7,10 @@ import {
   getMultiaddrs,
   multiaddrToNetConfig
 } from './utils.js'
-import type { Connection } from 'libp2p-interfaces/connection'
-import type { MultiaddrConnection, Upgrader, Listener } from 'libp2p-interfaces/transport'
+import type { Connection } from '@libp2p/interfaces/connection'
+import type { MultiaddrConnection, Upgrader, Listener } from '@libp2p/interfaces/transport'
 import type { Server } from 'net'
-import type { Multiaddr } from 'multiaddr'
+import type { Multiaddr } from '@multiformats/multiaddr'
 
 const log = Object.assign(
   debug('libp2p:tcp:listener'),

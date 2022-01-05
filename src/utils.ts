@@ -1,4 +1,4 @@
-import { Multiaddr } from 'multiaddr'
+import { Multiaddr } from '@multiformats/multiaddr'
 import os from 'os'
 
 const ProtoFamily = { ip4: 'IPv4', ip6: 'IPv6' }

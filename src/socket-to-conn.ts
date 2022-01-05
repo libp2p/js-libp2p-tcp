@@ -2,11 +2,11 @@ import abortable from 'abortable-iterator'
 import debug from 'debug'
 // @ts-expect-error no types
 import toIterable from 'stream-to-it'
-import toMultiaddr from 'libp2p-utils/src/ip-port-to-multiaddr.js'
+import { ipPortToMultiaddr as toMultiaddr } from '@libp2p/utils/ip-port-to-multiaddr'
 import { CLOSE_TIMEOUT } from './constants.js'
 import type { Socket } from 'net'
-import type { Multiaddr } from 'multiaddr'
-import type { MultiaddrConnection } from 'libp2p-interfaces/transport'
+import type { Multiaddr } from '@multiformats/multiaddr'
+import type { MultiaddrConnection } from '@libp2p/interfaces/transport'
 
 const log = debug('libp2p:tcp:socket')
 
