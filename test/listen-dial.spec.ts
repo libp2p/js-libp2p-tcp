@@ -1,5 +1,5 @@
 import { expect } from 'aegir/utils/chai.js'
-import TCP from '../src/index.js'
+import { TCP } from '../src/index.js'
 import os from 'os'
 import path from 'path'
 import { Multiaddr } from '@multiformats/multiaddr'

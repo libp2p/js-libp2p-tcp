@@ -30,7 +30,7 @@ interface DialOptions {
   signal?: AbortSignal
 }
 
-export default class TCP implements Transport<DialOptions, {}> {
+export class TCP implements Transport<DialOptions, {}> {
   private readonly _upgrader: Upgrader
 
   constructor (options: TCPOptions) {

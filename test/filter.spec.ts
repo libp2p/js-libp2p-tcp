@@ -1,5 +1,5 @@
 import { expect } from 'aegir/utils/chai.js'
-import TCP from '../src/index.js'
+import { TCP } from '../src/index.js'
 import { Multiaddr } from '@multiformats/multiaddr'
 import { mockUpgrader } from '@libp2p/interface-compliance-tests/transport/utils'
 
