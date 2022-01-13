@@ -55,7 +55,7 @@
     "@libp2p/utils": "^1.0.1",
     "@multiformats/mafmt": "^11.0.0",
     "@multiformats/multiaddr": "^10.1.1",
-    "abortable-iterator": "^3.0.1",
+    "abortable-iterator": "^4.0.1",
     "debug": "^4.3.1",
     "err-code": "^3.0.1",
     "stream-to-it": "^0.2.2"
