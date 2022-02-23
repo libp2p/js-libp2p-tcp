@@ -5,7 +5,7 @@ import path from 'path'
 import { Multiaddr } from '@multiformats/multiaddr'
 import { pipe } from 'it-pipe'
 import all from 'it-all'
-import { mockRegistrar, mockUpgrader } from '@libp2p/interface-compliance-tests/mocks'
+import { mockMuxer, mockUpgrader } from '@libp2p/interface-compliance-tests/mocks'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 
 const isCI = process.env.CI
@@ -120,15 +120,9 @@ describe('dial', () => {
   let tcp: TCP
 
   beforeEach(async () => {
-    const registrar = mockRegistrar()
-    void registrar.handle(protocol, (evt) => {
-      void pipe(
-        evt.detail.stream,
-        evt.detail.stream
-      )
-    })
+    const muxer = mockMuxer()
     const upgrader = mockUpgrader({
-      registrar
+      muxer
     })
 
     tcp = new TCP({
