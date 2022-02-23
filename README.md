@@ -51,12 +51,14 @@ const upgrader = {
 
 const tcp = new TCP({ upgrader })
 
-const listener = tcp.createListener({}, (socket) => {
-  console.log('new connection opened')
-  pipe(
-    ['hello'],
-    socket
-  )
+const listener = tcp.createListener({
+  handler: (socket) => {
+    console.log('new connection opened')
+    pipe(
+      ['hello', ' ', 'World!'],
+      socket
+    )
+  }
 })
 
 const addr = multiaddr('/ip4/127.0.0.1/tcp/9090')
@@ -79,7 +81,7 @@ Outputs:
 ```sh
 listening
 new connection opened
-Value: hello
+Value: hello World!
 ```
 
 ## API
