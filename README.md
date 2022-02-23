@@ -39,8 +39,8 @@
 
 ```js
 import { TCP } from '@libp2p/tcp'
-import { Multiaddr } from '@multiformats/multiaddr'
-import pipe from 'it-pipe'
+import { multiaddr } from '@multiformats/multiaddr'
+import {pipe} from 'it-pipe'
 import all from 'it-all'
 
 // A simple upgrader that just returns the MultiaddrConnection
