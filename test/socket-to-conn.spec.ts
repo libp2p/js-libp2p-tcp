@@ -260,6 +260,8 @@ describe('socket-to-conn', () => {
     expect(inboundMaConn.timeline.open).to.be.ok()
     expect(inboundMaConn.timeline.close).to.not.be.ok()
 
+    clientSocket.once('error', () => {})
+
     serverSocket.once('close', () => {
       serverClosed.resolve(true)
     })
@@ -297,6 +299,8 @@ describe('socket-to-conn', () => {
     expect(inboundMaConn.timeline.open).to.be.ok()
     expect(inboundMaConn.timeline.close).to.not.be.ok()
 
+    clientSocket.once('error', () => {})
+
     serverSocket.once('close', () => {
       serverClosed.resolve(true)
     })
@@ -333,6 +337,8 @@ describe('socket-to-conn', () => {
     })
     expect(inboundMaConn.timeline.open).to.be.ok()
     expect(inboundMaConn.timeline.close).to.not.be.ok()
+
+    clientSocket.once('error', () => {})
 
     serverSocket.once('close', () => {
       serverClosed.resolve(true)
@@ -375,6 +381,8 @@ describe('socket-to-conn', () => {
     })
     expect(inboundMaConn.timeline.open).to.be.ok()
     expect(inboundMaConn.timeline.close).to.not.be.ok()
+
+    clientSocket.once('error', () => {})
 
     serverSocket.once('close', () => {
       serverClosed.resolve(true)
