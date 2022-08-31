@@ -38,7 +38,17 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
     options.localAddr = options.remoteAddr
   }
 
-  const remoteAddr = options.remoteAddr ?? toMultiaddr(socket.remoteAddress ?? '', socket.remotePort ?? '')
+  let remoteAddr: Multiaddr
+
+  if (options.remoteAddr != null) {
+    remoteAddr = options.remoteAddr
+  } else {
+    const address = socket.address()
+
+    // @ts-expect-error type of address is `{} | AdressInfo` - how to exclude {}?
+    remoteAddr = toMultiaddr(address.address ?? '0.0.0.0', address.port ?? 0)
+  }
+
   const { host, port } = remoteAddr.toOptions()
   const { sink, source } = toIterable.duplex(socket)
 
