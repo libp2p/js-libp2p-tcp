@@ -99,13 +99,14 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
           resolve()
         })
         socket.end((err?: Error & { code?: string }) => {
+          maConn.timeline.close = Date.now()
+
           if (err != null) {
             // the timer will destroy the socket in the end
             return reject(err)
           }
 
           clearTimeout(timeout)
-          maConn.timeline.close = Date.now()
           resolve()
         })
       })
