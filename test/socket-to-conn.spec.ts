@@ -2,6 +2,7 @@ import { expect } from 'aegir/chai'
 import { createServer, Socket, Server } from 'net'
 import defer from 'p-defer'
 import { toMultiaddrConnection } from '../src/socket-to-conn.js'
+import os from 'os'
 import type { ServerOpts, SocketConstructorOpts } from 'net'
 
 async function setup (opts?: { server?: ServerOpts, client?: SocketConstructorOpts }) {
@@ -140,8 +141,12 @@ describe('socket-to-conn', () => {
     // close the client for reading and writing immediately
     clientSocket.destroy()
 
-    // client closed the connection
-    await expect(serverErrored.promise).to.eventually.have.property('code', 'ECONNRESET')
+    // client closed the connection - error code is platform specific
+    if (os.platform() === 'linux') {
+      await expect(serverErrored.promise).to.eventually.have.property('code', 'ERR_SOCKET_READ_TIMEOUT')
+    } else {
+      await expect(serverErrored.promise).to.eventually.have.property('code', 'ECONNRESET')
+    }
 
     // server socket was closed for reading and writing
     await expect(serverClosed.promise).to.eventually.be.true()
