@@ -43,10 +43,7 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
   if (options.remoteAddr != null) {
     remoteAddr = options.remoteAddr
   } else {
-    const address = socket.address()
-
-    // @ts-expect-error type of address is `{} | AdressInfo` - how to exclude {}?
-    remoteAddr = toMultiaddr(address.address ?? '0.0.0.0', address.port ?? 0)
+    remoteAddr = toMultiaddr(socket.remoteAddress ?? '0.0.0.0', socket.remotePort ?? 0)
   }
 
   const { host, port } = remoteAddr.toOptions()
