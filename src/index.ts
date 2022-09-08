@@ -6,7 +6,7 @@ import { toMultiaddrConnection } from './socket-to-conn.js'
 import { createListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
 import { AbortError } from '@libp2p/interfaces/errors'
-import { CODE_CIRCUIT, CODE_P2P } from './constants.js'
+import { CODE_CIRCUIT, CODE_P2P, CODE_UNIX } from './constants.js'
 import { CreateListenerOptions, DialOptions, symbol, Transport } from '@libp2p/interface-transport'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { Socket } from 'net'
@@ -153,6 +153,10 @@ export class TCP implements Transport {
     return multiaddrs.filter(ma => {
       if (ma.protoCodes().includes(CODE_CIRCUIT)) {
         return false
+      }
+
+      if (ma.protoCodes().includes(CODE_UNIX)) {
+        return true;
       }
 
       return mafmt.TCP.matches(ma.decapsulateCode(CODE_P2P))
