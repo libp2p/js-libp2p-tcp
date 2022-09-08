@@ -224,7 +224,7 @@ describe('dial', () => {
       async (source) => await all(source)
     )
 
-		expect(values[0].subarray()).to.equalBytes(uint8ArrayFromString('hey'))
+    expect(values[0].subarray()).to.equalBytes(uint8ArrayFromString('hey'))
     await conn.close()
     await listener.close()
   })
