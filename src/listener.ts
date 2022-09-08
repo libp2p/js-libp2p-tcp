@@ -110,12 +110,10 @@ export function createListener (context: Context) {
       }
 
       if (typeof address === 'string') {
-        throw new Error('Incorrect server address type')
-      }
-
-      // Because TCP will only return the IPv6 version
-      // we need to capture from the passed multiaddr
-      if (listeningAddr.toString().startsWith('/ip4')) {
+        addrs = [ listeningAddr ]
+      } else if (listeningAddr.toString().startsWith('/ip4')) {
+        // Because TCP will only return the IPv6 version
+        // we need to capture from the passed multiaddr
         addrs = addrs.concat(getMultiaddrs('ip4', address.address, address.port))
       } else if (address.family === 'IPv6') {
         addrs = addrs.concat(getMultiaddrs('ip6', address.address, address.port))
