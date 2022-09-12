@@ -31,7 +31,7 @@ describe('listen', () => {
   })
 
   it('listen on path', async () => {
-    const mh = new Multiaddr(`/unix${path.resolve(os.tmpdir(), `/tmp/p2pd-${Date.now()}.sock`)}`)
+    const mh = new Multiaddr(`/unix/${path.resolve(os.tmpdir(), `/tmp/p2pd-${Date.now()}.sock`)}`)
 
     listener = tcp.createListener({
       upgrader
@@ -207,7 +207,7 @@ describe('dial', () => {
   })
 
   it('dial on path', async () => {
-    const ma = new Multiaddr(`/unix${path.resolve(os.tmpdir(), `/tmp/p2pd-${Date.now()}.sock`)}`)
+    const ma = new Multiaddr(`/unix/${path.resolve(os.tmpdir(), `/tmp/p2pd-${Date.now()}.sock`)}`)
 
     const listener = tcp.createListener({
       upgrader
