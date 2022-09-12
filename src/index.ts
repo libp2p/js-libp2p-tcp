@@ -76,7 +76,7 @@ export class TCP implements Transport {
     return await new Promise<Socket>((resolve, reject) => {
       const start = Date.now()
       const cOpts = multiaddrToNetConfig(ma) as (IpcSocketConnectOpts & TcpSocketConnectOpts)
-      const cOptsStr = cOpts.path ?? `${cOpts.host}:${cOpts.port}`
+      const cOptsStr = cOpts.path ?? `${cOpts.host ?? ''}:${cOpts.port}`
 
       log('dialing %j', cOpts)
       const rawSocket = net.connect(cOpts)
@@ -157,7 +157,7 @@ export class TCP implements Transport {
       }
 
       if (ma.protoCodes().includes(CODE_UNIX)) {
-        return true;
+        return true
       }
 
       return mafmt.TCP.matches(ma.decapsulateCode(CODE_P2P))

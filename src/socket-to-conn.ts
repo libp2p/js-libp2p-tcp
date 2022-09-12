@@ -53,8 +53,8 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
     remoteAddr = toMultiaddr(socket.remoteAddress, socket.remotePort)
   }
 
-  const lOpts = multiaddrToNetConfig(remoteAddr);
-  const lOptsStr = lOpts.path ?? `${lOpts.host}:${lOpts.port}`
+  const lOpts = multiaddrToNetConfig(remoteAddr)
+  const lOptsStr = lOpts.path ?? `${lOpts.host ?? ''}:${lOpts.port ?? ''}`
   const { sink, source } = toIterable.duplex(socket)
 
   // by default there is no timeout

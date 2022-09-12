@@ -110,7 +110,7 @@ export function createListener (context: Context) {
       }
 
       if (typeof address === 'string') {
-        addrs = [ listeningAddr ]
+        addrs = [listeningAddr]
       } else if (listeningAddr.toString().startsWith('/ip4')) {
         // Because TCP will only return the IPv6 version
         // we need to capture from the passed multiaddr
