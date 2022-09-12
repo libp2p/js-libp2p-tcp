@@ -1,6 +1,7 @@
 import { Multiaddr } from '@multiformats/multiaddr'
 import type { ListenOptions, IpcSocketConnectOpts, TcpSocketConnectOpts } from 'net'
 import os from 'os'
+import path from 'path'
 
 const ProtoFamily = { ip4: 'IPv4', ip6: 'IPv6' }
 
@@ -9,7 +10,12 @@ export function multiaddrToNetConfig (addr: Multiaddr): ListenOptions | (IpcSock
 
   // unix socket listening
   if (listenPath != null) {
-    return { path: listenPath }
+    if (os.platform() === 'win32') {
+      // Use named pipes on Windows systems.
+      return { path: path.join('\\\\.\\pipe\\', listenPath) }
+    } else {
+      return { path: listenPath }
+    }
   }
 
   // tcp listening
