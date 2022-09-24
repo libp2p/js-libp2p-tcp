@@ -34,7 +34,7 @@ export interface TCPOptions {
 /**
  * Expose a subset of net.connect options
  */
- export interface TCPSocketOptions extends AbortOptions {
+export interface TCPSocketOptions extends AbortOptions {
   noDelay?: boolean
   keepAlive?: boolean
   keepAliveInitialDelay?: number
