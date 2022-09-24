@@ -11,7 +11,7 @@ import type { MultiaddrConnection, Connection } from '@libp2p/interface-connecti
 import type { Upgrader, Listener } from '@libp2p/interface-transport'
 import type { Server } from 'net'
 import type { Multiaddr } from '@multiformats/multiaddr'
-import type { TCPListenOptions } from './index.js'
+import type { TCPCreateListenerOptions } from './index.js'
 
 const log = logger('libp2p:tcp:listener')
 
@@ -30,7 +30,7 @@ async function attemptClose (maConn: MultiaddrConnection) {
   }
 }
 
-interface Context extends TCPListenOptions {
+interface Context extends TCPCreateListenerOptions {
   handler?: (conn: Connection) => void
   upgrader: Upgrader
   socketInactivityTimeout?: number
