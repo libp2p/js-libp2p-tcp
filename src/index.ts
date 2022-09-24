@@ -45,7 +45,7 @@ export interface TCPDialOptions extends DialOptions, TCPSocketOptions {
 
 }
 
-export interface TCPListenOptions extends CreateListenerOptions, TCPSocketOptions {
+export interface TCPCreateListenerOptions extends CreateListenerOptions, TCPSocketOptions {
 
 }
 
@@ -155,7 +155,7 @@ export class TCP implements Transport {
    * anytime a new incoming Connection has been successfully upgraded via
    * `upgrader.upgradeInbound`.
    */
-  createListener (options: TCPListenOptions) {
+  createListener (options: TCPCreateListenerOptions) {
     return createListener({
       ...options,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
