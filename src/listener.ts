@@ -11,6 +11,7 @@ import type { MultiaddrConnection, Connection } from '@libp2p/interface-connecti
 import type { Upgrader, Listener, ListenerEvents } from '@libp2p/interface-transport'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { TCPCreateListenerOptions } from './index.js'
+import { ServerStatusMetric, TcpMetrics } from './metrics.js'
 
 const log = logger('libp2p:tcp:listener')
 
@@ -31,6 +32,7 @@ interface Context extends TCPCreateListenerOptions {
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
   maxConnections?: number
+  metrics: TcpMetrics | null
 }
 
 type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
@@ -39,6 +41,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
   private readonly server: net.Server
   /** Keep track of open connections to destroy in case of timeout */
   private readonly connections = new Set<MultiaddrConnection>()
+  private readonly metrics: TcpMetrics | null
 
   private status: Status = { started: false }
 
@@ -47,7 +50,9 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
 
     context.keepAlive = context.keepAlive ?? true
 
-    this.server = net.createServer(context, this.onSocket.bind(this))
+    this.server = net.createServer(context, socket => {
+      this.onSocket(socket).catch(e => log('onSocket error', e))
+    })
 
     // https://nodejs.org/api/net.html#servermaxconnections
     // If set reject connections when the server's connection count gets high
@@ -60,12 +65,19 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       .on('listening', () => this.dispatchEvent(new CustomEvent('listening')))
       .on('error', err => this.dispatchEvent(new CustomEvent<Error>('error', { detail: err })))
       .on('close', () => this.dispatchEvent(new CustomEvent('close')))
+
+    this.metrics = context.metrics
+    this.metrics?.connections.addCollect(() => {
+      this.metrics?.connections.set(this.connections.size)
+      this.metrics?.serverStatus.set(this.status.started ? ServerStatusMetric.started : ServerStatusMetric.stopped)
+    })
   }
 
-  private onSocket (socket: net.Socket) {
+  private async onSocket (socket: net.Socket) {
     // Avoid uncaught errors caused by unstable connections
     socket.on('error', err => {
       log('socket error', err)
+      this.metrics?.socketEvents.inc({ event: 'error' })
     })
 
     let maConn: MultiaddrConnection
@@ -73,45 +85,38 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       maConn = toMultiaddrConnection(socket, {
         listeningAddr: this.status.started ? this.status.listeningAddr : undefined,
         socketInactivityTimeout: this.context.socketInactivityTimeout,
-        socketCloseTimeout: this.context.socketCloseTimeout
+        socketCloseTimeout: this.context.socketCloseTimeout,
+        metrics: this.metrics
       })
     } catch (err) {
       log.error('inbound connection failed', err)
+      this.metrics?.listenerErrors.inc({ error: 'inbound_to_connection' })
       return
     }
 
     log('new inbound connection %s', maConn.remoteAddr)
     try {
-      this.context.upgrader.upgradeInbound(maConn)
-        .then((conn) => {
-          log('inbound connection %s upgraded', maConn.remoteAddr)
-          this.connections.add(maConn)
+      const conn = await this.context.upgrader.upgradeInbound(maConn)
+      log('inbound connection %s upgraded', maConn.remoteAddr)
+      this.connections.add(maConn)
 
-          socket.once('close', () => {
-            this.connections.delete(maConn)
-          })
+      socket.once('close', () => {
+        this.connections.delete(maConn)
+      })
 
-          if (this.context.handler != null) {
-            this.context.handler(conn)
-          }
+      if (this.context.handler != null) {
+        this.context.handler(conn)
+      }
 
-          this.dispatchEvent(new CustomEvent<Connection>('connection', { detail: conn }))
-        })
-        .catch(async err => {
-          log.error('inbound connection failed', err)
-
-          await attemptClose(maConn)
-        })
-        .catch(err => {
-          log.error('closing inbound connection failed', err)
-        })
+      this.dispatchEvent(new CustomEvent<Connection>('connection', { detail: conn }))
     } catch (err) {
       log.error('inbound connection failed', err)
+      this.metrics?.listenerErrors.inc({ error: 'inbound_upgrade' })
 
-      attemptClose(maConn)
-        .catch(err => {
-          log.error('closing inbound connection failed', err)
-        })
+      attemptClose(maConn).catch(err => {
+        log.error('closing inbound connection failed', err)
+        this.metrics?.listenerErrors.inc({ error: 'inbound_closing_failed' })
+      })
     }
   }
 

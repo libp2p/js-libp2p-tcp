@@ -11,8 +11,11 @@ import { CreateListenerOptions, DialOptions, Listener, symbol, Transport } from 
 import type { AbortOptions, Multiaddr } from '@multiformats/multiaddr'
 import type { Socket, IpcSocketConnectOpts, TcpSocketConnectOpts } from 'net'
 import type { Connection } from '@libp2p/interface-connection'
+import type { TcpMetrics } from './metrics.js'
 
 const log = logger('libp2p:tcp')
+
+export { TcpMetrics }
 
 export interface TCPOptions {
   /**
@@ -57,9 +60,11 @@ export interface TCPCreateListenerOptions extends CreateListenerOptions, TCPSock
 
 class TCP implements Transport {
   private readonly opts: TCPOptions
+  private readonly metrics: TcpMetrics | null
 
-  constructor (options: TCPOptions = {}) {
+  constructor (options: TCPOptions = {}, metrics?: TcpMetrics | null) {
     this.opts = options
+    this.metrics = metrics ?? null
   }
 
   get [symbol] (): true {
@@ -78,6 +83,7 @@ class TCP implements Transport {
     // Avoid uncaught errors caused by unstable connections
     socket.on('error', err => {
       log('socket error', err)
+      this.metrics?.socketEvents.inc({ event: 'error' })
     })
 
     const maConn = toMultiaddrConnection(socket, {
@@ -113,6 +119,7 @@ class TCP implements Transport {
 
       const onTimeout = () => {
         log('connection timeout %s', cOptsStr)
+        this.metrics?.listenerErrors.inc({ error: 'outbound_connection_timeout' })
 
         const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ERR_CONNECT_TIMEOUT')
         // Note: this will result in onError() being called
@@ -166,7 +173,8 @@ class TCP implements Transport {
       ...options,
       maxConnections: this.opts.maxConnections,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
-      socketCloseTimeout: this.opts.socketCloseTimeout
+      socketCloseTimeout: this.opts.socketCloseTimeout,
+      metrics: this.metrics
     })
   }
 
