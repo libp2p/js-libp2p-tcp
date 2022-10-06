@@ -35,6 +35,7 @@ interface Context extends TCPCreateListenerOptions {
   upgrader: Upgrader
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
+  maxConnections?: number
 }
 
 /**
@@ -100,6 +101,13 @@ export function createListener (context: Context) {
   }),
   // Keep track of open connections to destroy in case of timeout
   { __connections: [] })
+
+  // https://nodejs.org/api/net.html#servermaxconnections
+  // If set reject connections when the server's connection count gets high
+  // Useful to prevent too resource exhaustion via many open connections on high bursts of activity
+  if (context.maxConnections !== undefined) {
+    server.maxConnections = context.maxConnections
+  }
 
   const listener: Listener = Object.assign(new EventEmitter(), {
     getAddrs: () => {
