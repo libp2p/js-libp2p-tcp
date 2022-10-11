@@ -34,7 +34,7 @@ interface Context extends TCPCreateListenerOptions {
 
 type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
 
-export class TcpListener extends EventEmitter<any> implements Listener {
+export class TCPListener extends EventEmitter<any> implements Listener {
   private readonly server: net.Server
   /** Keep track of open connections to destroy in case of timeout */
   private readonly connections = new Set<MultiaddrConnection>()

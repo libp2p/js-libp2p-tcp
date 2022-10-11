@@ -3,7 +3,7 @@ import * as mafmt from '@multiformats/mafmt'
 import errCode from 'err-code'
 import { logger } from '@libp2p/logger'
 import { toMultiaddrConnection } from './socket-to-conn.js'
-import { TcpListener } from './listener.js'
+import { TCPListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
 import { AbortError } from '@libp2p/interfaces/errors'
 import { CODE_CIRCUIT, CODE_P2P, CODE_UNIX } from './constants.js'
@@ -156,7 +156,7 @@ export class TCP implements Transport {
    * `upgrader.upgradeInbound`.
    */
   createListener (options: TCPCreateListenerOptions) {
-    return new TcpListener({
+    return new TCPListener({
       ...options,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
       socketCloseTimeout: this.opts.socketCloseTimeout
