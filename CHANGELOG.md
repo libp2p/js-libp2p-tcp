@@ -1,3 +1,21 @@
+## [4.0.1](https://github.com/libp2p/js-libp2p-tcp/compare/v4.0.0...v4.0.1) (2022-10-07)
+
+
+### Trivial Changes
+
+* **deps-dev:** bump @libp2p/interface-mocks from 4.0.3 to 6.0.0 ([#216](https://github.com/libp2p/js-libp2p-tcp/issues/216)) ([f224a5a](https://github.com/libp2p/js-libp2p-tcp/commit/f224a5a0e8b497317b2b9410bb60433647a3185a))
+
+## [4.0.0](https://github.com/libp2p/js-libp2p-tcp/compare/v3.1.2...v4.0.0) (2022-10-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** bump @libp2p/interface-transport from 1.0.4 to 2.0.0 (#215)
+
+### Trivial Changes
+
+* **deps:** bump @libp2p/interface-transport from 1.0.4 to 2.0.0 ([#215](https://github.com/libp2p/js-libp2p-tcp/issues/215)) ([1adf73d](https://github.com/libp2p/js-libp2p-tcp/commit/1adf73db4e88e0c196766588a2972a3a6e28e69a))
+
 ## [3.1.2](https://github.com/libp2p/js-libp2p-tcp/compare/v3.1.1...v3.1.2) (2022-09-24)
 
 

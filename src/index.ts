@@ -3,11 +3,11 @@ import * as mafmt from '@multiformats/mafmt'
 import errCode from 'err-code'
 import { logger } from '@libp2p/logger'
 import { toMultiaddrConnection } from './socket-to-conn.js'
-import { createListener } from './listener.js'
+import { TCPListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
 import { AbortError } from '@libp2p/interfaces/errors'
 import { CODE_CIRCUIT, CODE_P2P, CODE_UNIX } from './constants.js'
-import { CreateListenerOptions, DialOptions, symbol, Transport } from '@libp2p/interface-transport'
+import { CreateListenerOptions, DialOptions, Listener, symbol, Transport } from '@libp2p/interface-transport'
 import type { AbortOptions, Multiaddr } from '@multiformats/multiaddr'
 import type { Socket, IpcSocketConnectOpts, TcpSocketConnectOpts } from 'net'
 import type { Connection } from '@libp2p/interface-connection'
@@ -161,8 +161,8 @@ export class TCP implements Transport {
    * anytime a new incoming Connection has been successfully upgraded via
    * `upgrader.upgradeInbound`.
    */
-  createListener (options: TCPCreateListenerOptions) {
-    return createListener({
+  createListener (options: TCPCreateListenerOptions): Listener {
+    return new TCPListener({
       ...options,
       maxConnections: this.opts.maxConnections,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
@@ -173,7 +173,7 @@ export class TCP implements Transport {
   /**
    * Takes a list of `Multiaddr`s and returns only valid TCP addresses
    */
-  filter (multiaddrs: Multiaddr[]) {
+  filter (multiaddrs: Multiaddr[]): Multiaddr[] {
     multiaddrs = Array.isArray(multiaddrs) ? multiaddrs : [multiaddrs]
 
     return multiaddrs.filter(ma => {

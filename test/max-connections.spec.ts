@@ -12,7 +12,7 @@ describe('maxConnections', () => {
     afterEachCallbacks.length = 0
   })
 
-  it('Reject dial of connection above maxConnections', async () => {
+  it('reject dial of connection above maxConnections', async () => {
     const maxConnections = 2
     const socketCount = 4
     const port = 9900
