@@ -1,6 +1,6 @@
 {
   "name": "@libp2p/tcp",
-  "version": "3.1.2",
+  "version": "4.0.1",
   "description": "Node.js implementation of the TCP module that libp2p uses, which implements the interface-connection and interface-transport interfaces",
   "license": "Apache-2.0 OR MIT",
   "homepage": "https://github.com/libp2p/js-libp2p-tcp#readme",
@@ -137,7 +137,7 @@
   },
   "dependencies": {
     "@libp2p/interface-connection": "^3.0.2",
-    "@libp2p/interface-transport": "^1.0.4",
+    "@libp2p/interface-transport": "^2.0.0",
     "@libp2p/interfaces": "^3.0.3",
     "@libp2p/logger": "^2.0.0",
     "@libp2p/utils": "^3.0.2",
@@ -148,7 +148,7 @@
     "stream-to-it": "^0.2.2"
   },
   "devDependencies": {
-    "@libp2p/interface-mocks": "^4.0.3",
+    "@libp2p/interface-mocks": "^6.0.0",
     "@libp2p/interface-transport-compliance-tests": "^2.0.6",
     "aegir": "^37.5.3",
     "it-all": "^1.0.6",
