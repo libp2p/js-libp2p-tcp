@@ -8,7 +8,7 @@ import {
 } from './utils.js'
 import { EventEmitter, CustomEvent } from '@libp2p/interfaces/events'
 import type { MultiaddrConnection, Connection } from '@libp2p/interface-connection'
-import type { Upgrader, Listener } from '@libp2p/interface-transport'
+import type { Upgrader, Listener, ListenerEvents } from '@libp2p/interface-transport'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { TCPCreateListenerOptions } from './index.js'
 
@@ -34,7 +34,7 @@ interface Context extends TCPCreateListenerOptions {
 
 type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
 
-export class TCPListener extends EventEmitter<any> implements Listener {
+export class TCPListener extends EventEmitter<ListenerEvents> implements Listener {
   private readonly server: net.Server
   /** Keep track of open connections to destroy in case of timeout */
   private readonly connections = new Set<MultiaddrConnection>()
