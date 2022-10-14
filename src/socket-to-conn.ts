@@ -1,4 +1,3 @@
-import { abortableSource } from 'abortable-iterator'
 import { logger } from '@libp2p/logger'
 // @ts-expect-error no types
 import toIterable from 'stream-to-it'
@@ -16,7 +15,6 @@ interface ToConnectionOptions {
   listeningAddr?: Multiaddr
   remoteAddr?: Multiaddr
   localAddr?: Multiaddr
-  signal?: AbortSignal
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
 }
@@ -92,10 +90,6 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
 
   const maConn: MultiaddrConnection = {
     async sink (source) {
-      if ((options?.signal) != null) {
-        source = abortableSource(source, options.signal)
-      }
-
       try {
         await sink(source)
       } catch (err: any) {
@@ -112,7 +106,7 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
       socket.end()
     },
 
-    source: (options.signal != null) ? abortableSource(source, options.signal) : source,
+    source,
 
     // If the remote address was passed, use it - it may have the peer ID encapsulated
     remoteAddr,
