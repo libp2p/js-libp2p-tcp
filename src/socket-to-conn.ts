@@ -55,7 +55,7 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
 
   const lOpts = multiaddrToNetConfig(remoteAddr)
   const lOptsStr = lOpts.path ?? `${lOpts.host ?? ''}:${lOpts.port ?? ''}`
-  const { sink, source } = toIterable.duplex(socket)
+  const { sink } = toIterable.duplex(socket)
 
   // by default there is no timeout
   // https://nodejs.org/dist/latest-v16.x/docs/api/net.html#socketsettimeouttimeout-callback
@@ -112,7 +112,7 @@ export const toMultiaddrConnection = (socket: Socket, options?: ToConnectionOpti
       socket.end()
     },
 
-    source: (options.signal != null) ? abortableSource(source, options.signal) : source,
+    source: (options.signal != null) ? abortableSource(socket, options.signal) : socket,
 
     // If the remote address was passed, use it - it may have the peer ID encapsulated
     remoteAddr,
