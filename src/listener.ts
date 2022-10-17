@@ -272,15 +272,12 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
   }
 
   async close () {
-    if (!this.server.listening) {
-      return
-    }
-
     await Promise.all(
       Array.from(this.connections.values()).map(async maConn => await attemptClose(maConn))
     )
 
-    await this.netClose()
+    // netClose already checks if server.listening
+    this.netClose()
   }
 
   private async netListen (): Promise<void> {
