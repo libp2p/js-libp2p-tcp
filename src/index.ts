@@ -38,7 +38,8 @@ export interface TCPOptions {
   maxConnections?: number
 
   /**
-   * Close server (stop listening for new connection) if connections exceed a limit.
+   * Close server (stop listening for new connections) if connections exceed a limit.
+   * Open server (start listening for new connections) if connections fall below a limit.
    */
   limitServerConnections?: LimitServerConnectionsOpts
 }
