@@ -9,7 +9,7 @@ import errCode from 'err-code'
 import type { Socket } from 'net'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { MultiaddrConnection } from '@libp2p/interface-connection'
-import type { TcpMetrics } from './metrics.js'
+import type { Metrics } from './metrics.js'
 
 const log = logger('libp2p:tcp:socket')
 
@@ -20,7 +20,7 @@ interface ToConnectionOptions {
   signal?: AbortSignal
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
-  metrics?: TcpMetrics | null
+  metrics?: Metrics | null
 }
 
 /**

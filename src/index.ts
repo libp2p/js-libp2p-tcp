@@ -11,11 +11,9 @@ import { CreateListenerOptions, DialOptions, Listener, symbol, Transport } from 
 import type { AbortOptions, Multiaddr } from '@multiformats/multiaddr'
 import type { Socket, IpcSocketConnectOpts, TcpSocketConnectOpts } from 'net'
 import type { Connection } from '@libp2p/interface-connection'
-import type { TcpMetrics } from './metrics.js'
+import { getMetrics, Metrics, MetricsRegister } from './metrics.js'
 
 const log = logger('libp2p:tcp')
-
-export { TcpMetrics }
 
 export interface TCPOptions {
   /**
@@ -60,11 +58,11 @@ export interface TCPCreateListenerOptions extends CreateListenerOptions, TCPSock
 
 class TCP implements Transport {
   private readonly opts: TCPOptions
-  private readonly metrics: TcpMetrics | null
+  private readonly metrics: Metrics | null
 
-  constructor (options: TCPOptions = {}, metrics?: TcpMetrics | null) {
+  constructor (options: TCPOptions = {}, metricsRegistry?: MetricsRegister | null) {
     this.opts = options
-    this.metrics = metrics ?? null
+    this.metrics = metricsRegistry != null ? getMetrics(metricsRegistry) : null
   }
 
   get [symbol] (): true {

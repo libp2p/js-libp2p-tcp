@@ -11,7 +11,7 @@ import type { MultiaddrConnection, Connection } from '@libp2p/interface-connecti
 import type { Upgrader, Listener, ListenerEvents } from '@libp2p/interface-transport'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { TCPCreateListenerOptions } from './index.js'
-import { ServerStatusMetric, TcpMetrics } from './metrics.js'
+import { ServerStatusMetric, Metrics } from './metrics.js'
 
 const log = logger('libp2p:tcp:listener')
 
@@ -32,7 +32,7 @@ interface Context extends TCPCreateListenerOptions {
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
   maxConnections?: number
-  metrics: TcpMetrics | null
+  metrics: Metrics | null
 }
 
 type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
@@ -41,7 +41,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
   private readonly server: net.Server
   /** Keep track of open connections to destroy in case of timeout */
   private readonly connections = new Set<MultiaddrConnection>()
-  private readonly metrics: TcpMetrics | null
+  private readonly metrics: Metrics | null
 
   private status: Status = { started: false }
 
