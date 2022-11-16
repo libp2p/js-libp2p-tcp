@@ -98,7 +98,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
               label: 'error',
               help: 'Total count of TCP listener errors by error type'
             }),
-            events: context.metrics.registerCounterGroup(`libp2p_tcp_$${addr}_socket_events_total`, {
+            events: context.metrics.registerCounterGroup(`libp2p_tcp_${addr}_socket_events_total`, {
               label: 'event',
               help: 'Total count of TCP socket events by event'
             })
