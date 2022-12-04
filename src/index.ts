@@ -3,7 +3,7 @@ import * as mafmt from '@multiformats/mafmt'
 import errCode from 'err-code'
 import { logger } from '@libp2p/logger'
 import { toMultiaddrConnection } from './socket-to-conn.js'
-import { LimitServerConnectionsOpts, TCPListener } from './listener.js'
+import { CloseServerOnMaxConnectionsOpts, TCPListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
 import { AbortError } from '@libp2p/interfaces/errors'
 import { CODE_CIRCUIT, CODE_P2P, CODE_UNIX } from './constants.js'
@@ -41,7 +41,7 @@ export interface TCPOptions {
    * Close server (stop listening for new connections) if connections exceed a limit.
    * Open server (start listening for new connections) if connections fall below a limit.
    */
-  limitServerConnections?: LimitServerConnectionsOpts
+  closeServerOnMaxConnections?: CloseServerOnMaxConnectionsOpts
 }
 
 /**
@@ -197,7 +197,7 @@ class TCP implements Transport {
     return new TCPListener({
       ...options,
       maxConnections: this.opts.maxConnections,
-      limitServerConnections: this.opts.limitServerConnections,
+      closeServerOnMaxConnections: this.opts.closeServerOnMaxConnections,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
       socketCloseTimeout: this.opts.socketCloseTimeout,
       metrics: this.components.metrics

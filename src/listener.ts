@@ -27,9 +27,11 @@ async function attemptClose (maConn: MultiaddrConnection) {
   }
 }
 
-export interface LimitServerConnectionsOpts {
-  acceptBelow: number
-  rejectAbove: number
+export interface CloseServerOnMaxConnectionsOpts {
+  /** Server listens once connection count is less than `listenBelow` */
+  listenBelow: number
+  /** Close server once connection count is greater than or equal to `closeAbove` */
+  closeAbove: number
   onListenError?: (err: Error) => void
 }
 
@@ -40,7 +42,7 @@ interface Context extends TCPCreateListenerOptions {
   socketCloseTimeout?: number
   maxConnections?: number
   metrics?: Metrics
-  limitServerConnections?: LimitServerConnectionsOpts
+  closeServerOnMaxConnections?: CloseServerOnMaxConnectionsOpts
 }
 
 const SERVER_STATUS_UP = 1
@@ -80,6 +82,13 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     // Useful to prevent too resource exhaustion via many open connections on high bursts of activity
     if (context.maxConnections !== undefined) {
       this.server.maxConnections = context.maxConnections
+    }
+
+    if (context.closeServerOnMaxConnections != null) {
+      // Sanity check options
+      if (context.closeServerOnMaxConnections.closeAbove < context.closeServerOnMaxConnections.listenBelow) {
+        throw Error('closeAbove must be >= listenBelow')
+      }
     }
 
     this.server
@@ -174,8 +183,8 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
             this.connections.delete(maConn)
 
             if (
-              this.context.limitServerConnections != null &&
-              this.connections.size < this.context.limitServerConnections.acceptBelow
+              this.context.closeServerOnMaxConnections != null &&
+              this.connections.size < this.context.closeServerOnMaxConnections.listenBelow
             ) {
               // The most likely case of error is if the port taken by this application is binded by
               // another process during the time the server if closed. In that case there's not much
@@ -183,7 +192,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
               // acts as an eventual retry mechanism. onListenError allows the consumer act on this.
               this.netListen().catch(e => {
                 log.error('error attempting to listen server once connection count under limit', e)
-                this.context.limitServerConnections?.onListenError?.(e as Error)
+                this.context.closeServerOnMaxConnections?.onListenError?.(e as Error)
               })
             }
           })
@@ -193,8 +202,8 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
           }
 
           if (
-            this.context.limitServerConnections != null &&
-            this.connections.size >= this.context.limitServerConnections.rejectAbove
+            this.context.closeServerOnMaxConnections != null &&
+            this.connections.size >= this.context.closeServerOnMaxConnections.closeAbove
           ) {
             this.netClose()
           }
