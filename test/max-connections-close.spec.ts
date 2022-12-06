@@ -13,13 +13,13 @@ describe('close server on maxConnections', () => {
     afterEachCallbacks.length = 0
   })
 
-  it('reject dial of connection above rejectAbove', async () => {
-    const acceptBelow = 2
-    const rejectAbove = 3
+  it('reject dial of connection above closeAbove', async () => {
+    const listenBelow = 2
+    const closeAbove = 3
     const port = 9900
 
     const seenRemoteConnections = new Set<string>()
-    const trasnport = tcp({ limitServerConnections: { acceptBelow, rejectAbove } })()
+    const trasnport = tcp({ closeServerOnMaxConnections: { listenBelow, closeAbove } })()
 
     const upgrader = mockUpgrader()
     const listener = trasnport.createListener({ upgrader }) as TCPListener
@@ -100,7 +100,7 @@ describe('close server on maxConnections', () => {
     // Limit reached, server should be closed here
     await assertRefusedSocket(4)
     await assertRefusedSocket(5)
-    // Destroy sockets to be have connections < acceptBelow
+    // Destroy sockets to be have connections < listenBelow
     socket1.destroy()
     socket2.destroy()
     await assertServerConnections(1)
