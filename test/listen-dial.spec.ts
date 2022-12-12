@@ -332,20 +332,16 @@ describe('dial', () => {
 
   it('aborts during dial', async () => {
     const ma = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
-    const upgradeProcessStarted = pDefer()
     const maConnPromise = pDefer<MultiaddrConnection>()
 
-    upgrader.upgradeOutbound = async (maConn, opts) => {
-      // take a long time to give us time to abort the dial
-      upgradeProcessStarted.resolve()
+    // @ts-expect-error missing return value
+    upgrader.upgradeOutbound = async (maConn) => {
+      maConnPromise.resolve(maConn)
 
+      // take a long time to give us time to abort the dial
       await new Promise<void>((resolve) => {
         setTimeout(() => resolve(), 100)
       })
-
-      maConnPromise.resolve(maConn)
-
-      throw new Error('Finished')
     }
 
     const listener = transport.createListener({
@@ -356,7 +352,7 @@ describe('dial', () => {
     const abortController = new AbortController()
 
     // abort once the upgrade process has started
-    void upgradeProcessStarted.promise.then(() => abortController.abort())
+    maConnPromise.promise.then(() => abortController.abort())
 
     await expect(transport.dial(ma, {
       upgrader,
