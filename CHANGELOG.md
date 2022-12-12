@@ -1,3 +1,68 @@
+## [6.0.5](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.4...v6.0.5) (2022-12-06)
+
+
+### Dependencies
+
+* **dev:** bump sinon from 14.0.2 to 15.0.0 ([#233](https://github.com/libp2p/js-libp2p-tcp/issues/233)) ([72a79ab](https://github.com/libp2p/js-libp2p-tcp/commit/72a79ab81d79daaeb8a77656e98a19b70f132595))
+
+## [6.0.4](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.3...v6.0.4) (2022-11-22)
+
+
+### Bug Fixes
+
+* use labels to differentiate interfaces for metrics ([#230](https://github.com/libp2p/js-libp2p-tcp/issues/230)) ([6c4c316](https://github.com/libp2p/js-libp2p-tcp/commit/6c4c316d080cde679c11a784c22284d6e1912b94))
+
+## [6.0.3](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.2...v6.0.3) (2022-11-22)
+
+
+### Bug Fixes
+
+* make metrics interface a dep instead of a dev dep ([#231](https://github.com/libp2p/js-libp2p-tcp/issues/231)) ([876ca13](https://github.com/libp2p/js-libp2p-tcp/commit/876ca132aa2b307315148628681cddfa0828b3ac))
+
+## [6.0.2](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.1...v6.0.2) (2022-11-17)
+
+
+### Bug Fixes
+
+* update metric names to follow prometheus naming guide ([#228](https://github.com/libp2p/js-libp2p-tcp/issues/228)) ([24c5b37](https://github.com/libp2p/js-libp2p-tcp/commit/24c5b37ab64429972f29af6ae4516c18232d1ff3))
+
+
+### Trivial Changes
+
+* add test for filtering unix socket address ([#229](https://github.com/libp2p/js-libp2p-tcp/issues/229)) ([efcfbb2](https://github.com/libp2p/js-libp2p-tcp/commit/efcfbb28a77192a489834c8b8ad832337539d62b)), closes [#132](https://github.com/libp2p/js-libp2p-tcp/issues/132)
+
+## [6.0.1](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.0...v6.0.1) (2022-11-16)
+
+
+### Trivial Changes
+
+* **deps-dev:** bump @libp2p/interface-mocks from 7.1.0 to 8.0.1 ([#225](https://github.com/libp2p/js-libp2p-tcp/issues/225)) ([a271056](https://github.com/libp2p/js-libp2p-tcp/commit/a271056c8d8d179dd95399f9621d790a0f18b84a))
+
+## [6.0.0](https://github.com/libp2p/js-libp2p-tcp/compare/v5.0.2...v6.0.0) (2022-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires metrics interface v4
+
+### Features
+
+* add metrics ([#223](https://github.com/libp2p/js-libp2p-tcp/issues/223)) ([c004357](https://github.com/libp2p/js-libp2p-tcp/commit/c0043577777181545eef925b50e28743cfd7a29d)), closes [#217](https://github.com/libp2p/js-libp2p-tcp/issues/217)
+
+## [5.0.2](https://github.com/libp2p/js-libp2p-tcp/compare/v5.0.1...v5.0.2) (2022-11-05)
+
+
+### Bug Fixes
+
+* handle listen error ([#224](https://github.com/libp2p/js-libp2p-tcp/issues/224)) ([4125e9e](https://github.com/libp2p/js-libp2p-tcp/commit/4125e9eaa4d531dbcb0f2777149d1ca8fa9460a5))
+
+## [5.0.1](https://github.com/libp2p/js-libp2p-tcp/compare/v5.0.0...v5.0.1) (2022-10-17)
+
+
+### Trivial Changes
+
+* **deps-dev:** bump it-all from 1.0.6 to 2.0.0 ([#222](https://github.com/libp2p/js-libp2p-tcp/issues/222)) ([fddebdf](https://github.com/libp2p/js-libp2p-tcp/commit/fddebdff3ab2056da78f9ec665e5005a659e9045))
+
 ## [5.0.0](https://github.com/libp2p/js-libp2p-tcp/compare/v4.1.0...v5.0.0) (2022-10-12)
 
 

@@ -11,6 +11,7 @@ import type { MultiaddrConnection, Connection } from '@libp2p/interface-connecti
 import type { Upgrader, Listener, ListenerEvents } from '@libp2p/interface-transport'
 import type { Multiaddr } from '@multiformats/multiaddr'
 import type { TCPCreateListenerOptions } from './index.js'
+import type { CounterGroup, MetricGroup, Metrics } from '@libp2p/interface-metrics'
 
 const log = logger('libp2p:tcp:listener')
 
@@ -31,6 +32,16 @@ interface Context extends TCPCreateListenerOptions {
   socketInactivityTimeout?: number
   socketCloseTimeout?: number
   maxConnections?: number
+  metrics?: Metrics
+}
+
+const SERVER_STATUS_UP = 1
+const SERVER_STATUS_DOWN = 0
+
+export interface TCPListenerMetrics {
+  status: MetricGroup
+  errors: CounterGroup
+  events: CounterGroup
 }
 
 type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
@@ -39,14 +50,16 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
   private readonly server: net.Server
   /** Keep track of open connections to destroy in case of timeout */
   private readonly connections = new Set<MultiaddrConnection>()
-
   private status: Status = { started: false }
+  private metrics?: TCPListenerMetrics
+  private addr: string
 
   constructor (private readonly context: Context) {
     super()
 
     context.keepAlive = context.keepAlive ?? true
 
+    this.addr = 'unknown'
     this.server = net.createServer(context, this.onSocket.bind(this))
 
     // https://nodejs.org/api/net.html#servermaxconnections
@@ -57,15 +70,69 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     }
 
     this.server
-      .on('listening', () => this.dispatchEvent(new CustomEvent('listening')))
-      .on('error', err => this.dispatchEvent(new CustomEvent<Error>('error', { detail: err })))
-      .on('close', () => this.dispatchEvent(new CustomEvent('close')))
+      .on('listening', () => {
+        if (context.metrics != null) {
+          // we are listening, register metrics for our port
+          const address = this.server.address()
+
+          if (address == null) {
+            this.addr = 'unknown'
+          } else if (typeof address === 'string') {
+            // unix socket
+            this.addr = address
+          } else {
+            this.addr = `${address.address}:${address.port}`
+          }
+
+          context.metrics?.registerMetricGroup('libp2p_tcp_inbound_connections_total', {
+            label: 'address',
+            help: 'Current active connections in TCP listener',
+            calculate: () => {
+              return {
+                [this.addr]: this.connections.size
+              }
+            }
+          })
+
+          this.metrics = {
+            status: context.metrics.registerMetricGroup('libp2p_tcp_listener_status_info', {
+              label: 'address',
+              help: 'Current status of the TCP listener socket'
+            }),
+            errors: context.metrics.registerMetricGroup('libp2p_tcp_listener_errors_total', {
+              label: 'address',
+              help: 'Total count of TCP listener errors by type'
+            }),
+            events: context.metrics.registerMetricGroup('libp2p_tcp_listener_events_total', {
+              label: 'address',
+              help: 'Total count of TCP listener events by type'
+            })
+          }
+
+          this.metrics?.status.update({
+            [this.addr]: SERVER_STATUS_UP
+          })
+        }
+
+        this.dispatchEvent(new CustomEvent('listening'))
+      })
+      .on('error', err => {
+        this.metrics?.errors.increment({ [`${this.addr} listen_error`]: true })
+        this.dispatchEvent(new CustomEvent<Error>('error', { detail: err }))
+      })
+      .on('close', () => {
+        this.metrics?.status.update({
+          [this.addr]: SERVER_STATUS_DOWN
+        })
+        this.dispatchEvent(new CustomEvent('close'))
+      })
   }
 
   private onSocket (socket: net.Socket) {
     // Avoid uncaught errors caused by unstable connections
     socket.on('error', err => {
       log('socket error', err)
+      this.metrics?.events.increment({ [`${this.addr} error`]: true })
     })
 
     let maConn: MultiaddrConnection
@@ -73,10 +140,13 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       maConn = toMultiaddrConnection(socket, {
         listeningAddr: this.status.started ? this.status.listeningAddr : undefined,
         socketInactivityTimeout: this.context.socketInactivityTimeout,
-        socketCloseTimeout: this.context.socketCloseTimeout
+        socketCloseTimeout: this.context.socketCloseTimeout,
+        metrics: this.metrics?.events,
+        metricPrefix: `${this.addr} `
       })
     } catch (err) {
       log.error('inbound connection failed', err)
+      this.metrics?.errors.increment({ [`${this.addr} inbound_to_connection`]: true })
       return
     }
 
@@ -84,7 +154,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     try {
       this.context.upgrader.upgradeInbound(maConn)
         .then((conn) => {
-          log('inbound connection %s upgraded', maConn.remoteAddr)
+          log('inbound connection upgraded %s', maConn.remoteAddr)
           this.connections.add(maConn)
 
           socket.once('close', () => {
@@ -99,6 +169,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
         })
         .catch(async err => {
           log.error('inbound connection failed', err)
+          this.metrics?.errors.increment({ [`${this.addr} inbound_upgrade`]: true })
 
           await attemptClose(maConn)
         })
@@ -111,6 +182,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       attemptClose(maConn)
         .catch(err => {
           log.error('closing inbound connection failed', err)
+          this.metrics?.errors.increment({ [`${this.addr} inbound_closing_failed`]: true })
         })
     }
   }
@@ -155,10 +227,10 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
 
     return await new Promise<void>((resolve, reject) => {
       const options = multiaddrToNetConfig(listeningAddr)
-      this.server.listen(options, (err?: any) => {
-        if (err != null) {
-          return reject(err)
-        }
+      this.server.on('error', (err) => {
+        reject(err)
+      })
+      this.server.listen(options, () => {
         log('Listening on %s', this.server.address())
         resolve()
       })

@@ -11,6 +11,7 @@ import { CreateListenerOptions, DialOptions, Listener, symbol, Transport } from 
 import type { AbortOptions, Multiaddr } from '@multiformats/multiaddr'
 import type { Socket, IpcSocketConnectOpts, TcpSocketConnectOpts } from 'net'
 import type { Connection } from '@libp2p/interface-connection'
+import type { CounterGroup, Metrics } from '@libp2p/interface-metrics'
 
 const log = logger('libp2p:tcp')
 
@@ -55,11 +56,31 @@ export interface TCPCreateListenerOptions extends CreateListenerOptions, TCPSock
 
 }
 
+export interface TCPComponents {
+  metrics?: Metrics
+}
+
+export interface TCPMetrics {
+  dialerEvents: CounterGroup
+}
+
 class TCP implements Transport {
   private readonly opts: TCPOptions
+  private readonly metrics?: TCPMetrics
+  private readonly components: TCPComponents
 
-  constructor (options: TCPOptions = {}) {
+  constructor (components: TCPComponents, options: TCPOptions = {}) {
     this.opts = options
+    this.components = components
+
+    if (components.metrics != null) {
+      this.metrics = {
+        dialerEvents: components.metrics.registerCounterGroup('libp2p_tcp_dialer_events_total', {
+          label: 'event',
+          help: 'Total count of TCP dialer events by type'
+        })
+      }
+    }
   }
 
   get [symbol] (): true {
@@ -84,7 +105,8 @@ class TCP implements Transport {
     const maConn = toMultiaddrConnection(socket, {
       remoteAddr: ma,
       socketInactivityTimeout: this.opts.outboundSocketInactivityTimeout,
-      socketCloseTimeout: this.opts.socketCloseTimeout
+      socketCloseTimeout: this.opts.socketCloseTimeout,
+      metrics: this.metrics?.dialerEvents
     })
 
     const onAbort = () => {
@@ -126,12 +148,14 @@ class TCP implements Transport {
 
       const onError = (err: Error) => {
         err.message = `connection error ${cOptsStr}: ${err.message}`
+        this.metrics?.dialerEvents.increment({ error: true })
 
         done(err)
       }
 
       const onTimeout = () => {
         log('connection timeout %s', cOptsStr)
+        this.metrics?.dialerEvents.increment({ timeout: true })
 
         const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ERR_CONNECT_TIMEOUT')
         // Note: this will result in onError() being called
@@ -140,11 +164,13 @@ class TCP implements Transport {
 
       const onConnect = () => {
         log('connection opened %j', cOpts)
+        this.metrics?.dialerEvents.increment({ connect: true })
         done()
       }
 
       const onAbort = () => {
         log('connection aborted %j', cOpts)
+        this.metrics?.dialerEvents.increment({ abort: true })
         rawSocket.destroy()
         done(new AbortError())
       }
@@ -185,7 +211,8 @@ class TCP implements Transport {
       ...options,
       maxConnections: this.opts.maxConnections,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
-      socketCloseTimeout: this.opts.socketCloseTimeout
+      socketCloseTimeout: this.opts.socketCloseTimeout,
+      metrics: this.components.metrics
     })
   }
 
@@ -209,8 +236,8 @@ class TCP implements Transport {
   }
 }
 
-export function tcp (init: TCPOptions = {}): (components?: any) => Transport {
-  return () => {
-    return new TCP(init)
+export function tcp (init: TCPOptions = {}): (components?: TCPComponents) => Transport {
+  return (components: TCPComponents = {}) => {
+    return new TCP(components, init)
   }
 }
