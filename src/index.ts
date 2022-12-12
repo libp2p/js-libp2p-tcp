@@ -122,7 +122,7 @@ class TCP implements Transport {
 
     options.signal?.removeEventListener('abort', onAbort)
 
-    if (options.signal?.aborted) {
+    if (options.signal?.aborted === true) {
       conn.close().catch(err => {
         log.error('Error closing conn after abort', err)
       })

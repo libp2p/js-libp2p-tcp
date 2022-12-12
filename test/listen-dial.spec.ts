@@ -356,7 +356,7 @@ describe('dial', () => {
     const abortController = new AbortController()
 
     // abort once the upgrade process has started
-    upgradeProcessStarted.promise.then(() => abortController.abort())
+    void upgradeProcessStarted.promise.then(() => abortController.abort())
 
     await expect(transport.dial(ma, {
       upgrader,
