@@ -352,7 +352,7 @@ describe('dial', () => {
     const abortController = new AbortController()
 
     // abort once the upgrade process has started
-    maConnPromise.promise.then(() => abortController.abort())
+    void maConnPromise.promise.then(() => abortController.abort())
 
     await expect(transport.dial(ma, {
       upgrader,
