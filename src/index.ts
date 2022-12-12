@@ -87,7 +87,11 @@ class TCP implements Transport {
       socketCloseTimeout: this.opts.socketCloseTimeout
     })
 
-    const onAbort = () => socket.end()
+    const onAbort = () => {
+      maConn.close().catch(err => {
+        log.error('Error closing maConn after abort', err)
+      })
+    }
     options.signal?.addEventListener('abort', onAbort, { once: true })
 
     log('new outbound connection %s', maConn.remoteAddr)
@@ -95,6 +99,14 @@ class TCP implements Transport {
     log('outbound connection %s upgraded', maConn.remoteAddr)
 
     options.signal?.removeEventListener('abort', onAbort)
+
+    if (options.signal?.aborted) {
+      conn.close().catch(err => {
+        log.error('Error closing conn after abort', err)
+      })
+
+      throw new AbortError()
+    }
 
     return conn
   }

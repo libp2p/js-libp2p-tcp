@@ -8,6 +8,8 @@ import all from 'it-all'
 import { mockRegistrar, mockUpgrader } from '@libp2p/interface-mocks'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import type { Transport, Upgrader } from '@libp2p/interface-transport'
+import pDefer from 'p-defer'
+import type { MultiaddrConnection } from '@libp2p/interface-connection'
 
 const isCI = process.env.CI
 
@@ -20,6 +22,7 @@ describe('listen', () => {
     transport = tcp()()
     upgrader = mockUpgrader()
   })
+
   afterEach(async () => {
     try {
       if (listener != null) {
@@ -308,6 +311,63 @@ describe('dial', () => {
     expect(values[0].subarray()).to.equalBytes(uint8ArrayFromString('hey'))
 
     await conn.close()
+    await listener.close()
+  })
+
+  it('aborts during dial', async () => {
+    const ma = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
+    const upgradeProcessStarted = pDefer()
+    const maConnPromise = pDefer<MultiaddrConnection>()
+
+    upgrader.upgradeOutbound = async (maConn, opts) => {
+      // take a long time to give us time to abort the dial
+      upgradeProcessStarted.resolve()
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 100)
+      })
+
+      maConnPromise.resolve(maConn)
+
+      throw new Error('Finished')
+    }
+
+    const listener = transport.createListener({
+      upgrader
+    })
+    await listener.listen(ma)
+
+    const abortController = new AbortController()
+
+    // abort once the upgrade process has started
+    upgradeProcessStarted.promise.then(() => abortController.abort())
+
+    await expect(transport.dial(ma, {
+      upgrader,
+      signal: abortController.signal
+    })).to.eventually.be.rejected('The operation was aborted')
+
+    await expect(maConnPromise.promise).to.eventually.have.nested.property('timeline.close')
+      .that.is.ok('did not gracefully close maConn')
+
+    await listener.close()
+  })
+
+  it('aborts before dial', async () => {
+    const ma = multiaddr('/ip4/127.0.0.1/tcp/9090/ipfs/Qmb6owHp6eaWArVbcJJbQSyifyJBttMMjYV76N2hMbf5Vw')
+    const listener = transport.createListener({
+      upgrader
+    })
+    await listener.listen(ma)
+
+    const abortController = new AbortController()
+    abortController.abort()
+
+    await expect(transport.dial(ma, {
+      upgrader,
+      signal: abortController.signal
+    })).to.eventually.be.rejected('The operation was aborted')
+
     await listener.close()
   })
 })
