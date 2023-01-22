@@ -16,7 +16,7 @@ describe('close server on maxConnections', () => {
   it('reject dial of connection above closeAbove', async () => {
     const listenBelow = 2
     const closeAbove = 3
-    const port = 9900
+    const port = 9901
 
     const seenRemoteConnections = new Set<string>()
     const trasnport = tcp({ closeServerOnMaxConnections: { listenBelow, closeAbove } })()
