@@ -18,7 +18,7 @@ const log = logger('libp2p:tcp:listener')
 /**
  * Attempts to close the given maConn. If a failure occurs, it will be logged
  */
-async function attemptClose (maConn: MultiaddrConnection) {
+async function attemptClose (maConn: MultiaddrConnection): Promise<void> {
   try {
     await maConn.close()
   } catch (err) {
@@ -44,7 +44,7 @@ export interface TCPListenerMetrics {
   events: CounterGroup
 }
 
-type Status = {started: false} | {started: true, listeningAddr: Multiaddr, peerId: string | null }
+type Status = { started: false } | { started: true, listeningAddr: Multiaddr, peerId: string | null }
 
 export class TCPListener extends EventEmitter<ListenerEvents> implements Listener {
   private readonly server: net.Server
@@ -128,7 +128,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       })
   }
 
-  private onSocket (socket: net.Socket) {
+  private onSocket (socket: net.Socket): void {
     // Avoid uncaught errors caused by unstable connections
     socket.on('error', err => {
       log('socket error', err)
@@ -187,7 +187,7 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     }
   }
 
-  getAddrs () {
+  getAddrs (): Multiaddr[] {
     if (!this.status.started) {
       return []
     }
@@ -219,13 +219,13 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     return addrs.map(ma => peerId != null ? ma.encapsulate(`/p2p/${peerId}`) : ma)
   }
 
-  async listen (ma: Multiaddr) {
+  async listen (ma: Multiaddr): Promise<void> {
     const peerId = ma.getPeerId()
     const listeningAddr = peerId == null ? ma.decapsulateCode(CODE_P2P) : ma
 
     this.status = { started: true, listeningAddr, peerId }
 
-    return await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const options = multiaddrToNetConfig(listeningAddr)
       this.server.on('error', (err) => {
         reject(err)
@@ -237,17 +237,17 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
     })
   }
 
-  async close () {
+  async close (): Promise<void> {
     if (!this.server.listening) {
       return
     }
 
     await Promise.all(
-      Array.from(this.connections.values()).map(async maConn => await attemptClose(maConn))
+      Array.from(this.connections.values()).map(async maConn => { await attemptClose(maConn) })
     )
 
     await new Promise<void>((resolve, reject) => {
-      this.server.close(err => (err != null) ? reject(err) : resolve())
+      this.server.close(err => { (err != null) ? reject(err) : resolve() })
     })
   }
 }
