@@ -1,3 +1,34 @@
+## [6.1.1](https://github.com/libp2p/js-libp2p-tcp/compare/v6.1.0...v6.1.1) (2023-01-26)
+
+
+### Bug Fixes
+
+* update log message when socket closes ([#249](https://github.com/libp2p/js-libp2p-tcp/issues/249)) ([f95bbf1](https://github.com/libp2p/js-libp2p-tcp/commit/f95bbf11aa59a184106ea1b1288442160dd0b373))
+
+## [6.1.0](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.9...v6.1.0) (2023-01-21)
+
+
+### Features
+
+* close server on maxConnections ([#218](https://github.com/libp2p/js-libp2p-tcp/issues/218)) ([bff54fa](https://github.com/libp2p/js-libp2p-tcp/commit/bff54fa5d40be44f421924e21b11d8c37fc53b1e))
+
+
+### Bug Fixes
+
+* specify host explicitly in node tests ([#247](https://github.com/libp2p/js-libp2p-tcp/issues/247)) ([d7e5a69](https://github.com/libp2p/js-libp2p-tcp/commit/d7e5a69d917850b756a0fd47760552e0b2fb0feb))
+
+## [6.0.9](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.8...v6.0.9) (2023-01-17)
+
+
+### Bug Fixes
+
+* increase default socket close timeout ([#242](https://github.com/libp2p/js-libp2p-tcp/issues/242)) ([a64ba41](https://github.com/libp2p/js-libp2p-tcp/commit/a64ba41f485f3bde28b58827c8a2ce5bf94f711a)), closes [#239](https://github.com/libp2p/js-libp2p-tcp/issues/239)
+
+
+### Trivial Changes
+
+* replace err-code with CodeError ([#240](https://github.com/libp2p/js-libp2p-tcp/issues/240)) ([5c44562](https://github.com/libp2p/js-libp2p-tcp/commit/5c445628e97a1462c64a48253efd9ccb3441c399)), closes [js-libp2p#1269](https://github.com/libp2p/js-libp2p/issues/1269)
+
 ## [6.0.8](https://github.com/libp2p/js-libp2p-tcp/compare/v6.0.7...v6.0.8) (2022-12-16)
 
 

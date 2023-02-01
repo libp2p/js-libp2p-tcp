@@ -1,11 +1,10 @@
 import net from 'net'
 import * as mafmt from '@multiformats/mafmt'
-import errCode from 'err-code'
 import { logger } from '@libp2p/logger'
 import { toMultiaddrConnection } from './socket-to-conn.js'
-import { TCPListener } from './listener.js'
+import { CloseServerOnMaxConnectionsOpts, TCPListener } from './listener.js'
 import { multiaddrToNetConfig } from './utils.js'
-import { AbortError } from '@libp2p/interfaces/errors'
+import { AbortError, CodeError } from '@libp2p/interfaces/errors'
 import { CODE_CIRCUIT, CODE_P2P, CODE_UNIX } from './constants.js'
 import { CreateListenerOptions, DialOptions, Listener, symbol, Transport } from '@libp2p/interface-transport'
 import type { AbortOptions, Multiaddr } from '@multiformats/multiaddr'
@@ -36,6 +35,12 @@ export interface TCPOptions {
    * https://nodejs.org/api/net.html#servermaxconnections
    */
   maxConnections?: number
+
+  /**
+   * Close server (stop listening for new connections) if connections exceed a limit.
+   * Open server (start listening for new connections) if connections fall below a limit.
+   */
+  closeServerOnMaxConnections?: CloseServerOnMaxConnectionsOpts
 }
 
 /**
@@ -157,7 +162,7 @@ class TCP implements Transport {
         log('connection timeout %s', cOptsStr)
         this.metrics?.dialerEvents.increment({ timeout: true })
 
-        const err = errCode(new Error(`connection timeout after ${Date.now() - start}ms`), 'ERR_CONNECT_TIMEOUT')
+        const err = new CodeError(`connection timeout after ${Date.now() - start}ms`, 'ERR_CONNECT_TIMEOUT')
         // Note: this will result in onError() being called
         rawSocket.emit('error', err)
       }
@@ -210,6 +215,7 @@ class TCP implements Transport {
     return new TCPListener({
       ...options,
       maxConnections: this.opts.maxConnections,
+      closeServerOnMaxConnections: this.opts.closeServerOnMaxConnections,
       socketInactivityTimeout: this.opts.inboundSocketInactivityTimeout,
       socketCloseTimeout: this.opts.socketCloseTimeout,
       metrics: this.components.metrics
