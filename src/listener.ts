@@ -269,12 +269,14 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
 
     const peerId = ma.getPeerId()
     const listeningAddr = peerId == null ? ma.decapsulateCode(CODE_P2P) : ma
+    const netConfig = multiaddrToNetConfig(listeningAddr)
+    const { backlog } = this.context
 
     this.status = {
       started: true,
       listeningAddr,
       peerId,
-      netConfig: multiaddrToNetConfig(listeningAddr)
+      netConfig: backlog ? { ...netConfig, backlog } : netConfig
     }
 
     await this.netListen()

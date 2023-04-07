@@ -51,6 +51,7 @@ export interface TCPSocketOptions extends AbortOptions {
   keepAlive?: boolean
   keepAliveInitialDelay?: number
   allowHalfOpen?: boolean
+  backlog?: number
 }
 
 export interface TCPDialOptions extends DialOptions, TCPSocketOptions {
