@@ -91,6 +91,10 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       }
     }
 
+    if (context.backlog != null && context.backlog <= 0) {
+      throw Error('backlog must be > 0')
+    }
+
     this.server
       .on('listening', () => {
         if (context.metrics != null) {
