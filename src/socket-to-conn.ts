@@ -130,12 +130,12 @@ export const toMultiaddrConnection = (socket: Socket, options: ToConnectionOptio
       await new Promise<void>((resolve, reject) => {
         const start = Date.now()
 
-        let timeout: NodeJS.Timeout | undefined = undefined
+        let timeout: NodeJS.Timeout | undefined
 
         socket.once('close', () => {
           log('%s socket closed', lOptsStr)
           // socket completely closed
-          if (timeout) {
+          if (timeout !== undefined) {
             clearTimeout(timeout)
           }
           resolve()
@@ -149,7 +149,7 @@ export const toMultiaddrConnection = (socket: Socket, options: ToConnectionOptio
           }
 
           if (socket.destroyed) {
-            if (timeout) {
+            if (timeout !== undefined) {
               clearTimeout(timeout)
             }
           }
