@@ -92,10 +92,6 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
       }
     }
 
-    if (context.backlog != null && context.backlog <= 0) {
-      throw Error('backlog must be > 0')
-    }
-
     this.server
       .on('listening', () => {
         if (context.metrics != null) {
@@ -274,14 +270,13 @@ export class TCPListener extends EventEmitter<ListenerEvents> implements Listene
 
     const peerId = ma.getPeerId()
     const listeningAddr = peerId == null ? ma.decapsulateCode(CODE_P2P) : ma
-    const netConfig = multiaddrToNetConfig(listeningAddr)
     const { backlog } = this.context
 
     this.status = {
       started: true,
       listeningAddr,
       peerId,
-      netConfig: backlog ? { ...netConfig, backlog } : netConfig
+      netConfig: multiaddrToNetConfig(listeningAddr, { backlog })
     }
 
     await this.netListen()
