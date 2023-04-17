@@ -41,22 +41,24 @@ export const toMultiaddrConnection = (socket: Socket, options: ToConnectionOptio
     options.localAddr = options.remoteAddr
   }
 
+  let lOptsStr: string
   let remoteAddr: Multiaddr
 
   if (options.remoteAddr != null) {
     remoteAddr = options.remoteAddr
+    const lOpts = multiaddrToNetConfig(remoteAddr)
+    lOptsStr = lOpts.path ?? `${lOpts.host ?? ''}:${lOpts.port ?? ''}`
   } else {
     if (socket.remoteAddress == null || socket.remotePort == null) {
       // this can be undefined if the socket is destroyed (for example, if the client disconnected)
       // https://nodejs.org/dist/latest-v16.x/docs/api/net.html#socketremoteaddress
       throw new CodeError('Could not determine remote address or port', 'ERR_NO_REMOTE_ADDRESS')
     }
-
-    remoteAddr = toMultiaddr(socket.remoteAddress, socket.remotePort)
+    const { remoteAddress, remotePort } = socket
+    remoteAddr = toMultiaddr(remoteAddress, remotePort)
+    lOptsStr = `${remoteAddress ?? ''}:${remotePort ?? ''}`
   }
 
-  const lOpts = multiaddrToNetConfig(remoteAddr)
-  const lOptsStr = lOpts.path ?? `${lOpts.host ?? ''}:${lOpts.port ?? ''}`
   const { sink, source } = toIterable.duplex(socket)
 
   // by default there is no timeout
